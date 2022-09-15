@@ -50,3 +50,10 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# my additions
+.idea
+.vscode
+cmake-build-debug
+build
+sensor_network
