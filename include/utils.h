@@ -8,6 +8,9 @@
 #ifndef SENSORNETWORK_UTILS_H
 #define SENSORNETWORK_UTILS_H
 
+#include <time.h>
+#include <stdbool.h>
+
 typedef struct
 {
     unsigned int x;
@@ -22,5 +25,7 @@ typedef struct
 
 float rand_float(const float max);
 void init_rand(unsigned int additional_seed);
+
+bool convert_time(const time_t *in, struct tm **out);
 
 #endif // SENSORNETWORK_UTILS_H
