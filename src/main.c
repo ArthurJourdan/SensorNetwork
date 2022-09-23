@@ -5,7 +5,6 @@
  * @brief TODO
  */
 
-#include "base_station.h"
 #include "grid.h"
 #include "mpi_utils.h"
 #include "utils.h"
@@ -31,11 +30,6 @@ int main(int ac, char *av[])
     bool ret_val = true;
 
     ret_val = init(ac, av, &process, &my_grid);
-
-    if (process.rank == 0) {
-      base_station(process);
-    }
-
     if (!ret_val)
         return 1;
     return 0;

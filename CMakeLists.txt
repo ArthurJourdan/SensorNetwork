@@ -17,14 +17,12 @@ find_package(MPI REQUIRED)
 include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 include_directories(${INCLUDE_DIR})
 
-file(GLOB SRCS CONFIGURE_DEPENDS ${SRC_DIR}/*.c)
-
-# set(SRCS
-#     ${SRC_DIR}main.c
-#     ${SRC_DIR}grid_setting.c
-#     ${SRC_DIR}mpi_utils.c
-#     ${SRC_DIR}sensor.c
-#     ${SRC_DIR}utils.c)
+set(SRCS
+    ${SRC_DIR}main.c
+    ${SRC_DIR}grid_setting.c
+    ${SRC_DIR}mpi_utils.c
+    ${SRC_DIR}sensor.c
+    ${SRC_DIR}utils.c)
 
 add_executable(${SENSOR_NETWORK} ${SRCS})
 
