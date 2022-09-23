@@ -18,7 +18,6 @@ typedef struct
     f_vector_t coordinates;
     float magnitude;
     float depth;
-
 } sensor_reading_t;
 // This reading consists of date, time,
 //     latitude and longitude of the earthquake point, magnitude, and depth of the quake from the sensor.

@@ -1,5 +1,5 @@
 
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.16)
 set(CMAKE_BUILD_TYPE DEBUG)
 set(SENSOR_NETWORK sensor_network)
 
@@ -17,12 +17,14 @@ find_package(MPI REQUIRED)
 include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 include_directories(${INCLUDE_DIR})
 
-set(SRCS
-    ${SRC_DIR}main.c
-    ${SRC_DIR}grid_setting.c
-    ${SRC_DIR}mpi_utils.c
-    ${SRC_DIR}sensor.c
-    ${SRC_DIR}utils.c)
+file(GLOB SRCS CONFIGURE_DEPENDS ${SRC_DIR}/*.c)
+
+# set(SRCS
+#     ${SRC_DIR}main.c
+#     ${SRC_DIR}grid_setting.c
+#     ${SRC_DIR}mpi_utils.c
+#     ${SRC_DIR}sensor.c
+#     ${SRC_DIR}utils.c)
 
 add_executable(${SENSOR_NETWORK} ${SRCS})
 
