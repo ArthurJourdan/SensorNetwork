@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <stdbool.h>
+#include <string.h>
 #include <mpi.h>
 #include "base_station.h"
 
@@ -40,17 +41,25 @@ void base_station(mpi_info_t process)
     char sentinel, keyPressed;
     pthread_attr_t attr;
     pthread_t reading_tid, balloon_tid;
+    char userInput[64];
 
     printf("Sentinel value: ");
-    scanf("%c", &sentinel);
+    scanf(" %c", &sentinel);
 
     pthread_attr_init(&attr);
 
     pthread_create(&reading_tid, &attr, (void *) reading_thread, &process);
     pthread_create(&balloon_tid, &attr, (void *) balloon_thread, &process);
 
-    while (fgetc(stdin) == sentinel) {}
+    while (true) {
+      scanf("%s", userInput);
 
+      if (strlen(userInput) == 1 && userInput[0] == sentinel) {
+        break;
+      }
+    }
+
+    // TODO change to global cancel variable 
     pthread_cancel(reading_tid);
-    pthread_join(balloon_tid, NULL);
+    pthread_cancel(balloon_tid);
 }
