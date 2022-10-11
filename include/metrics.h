@@ -23,11 +23,11 @@ typedef struct
 {
     struct tm *start_time;
     /**
-     * @brief Sum of all sensors alerts
+     * @brief Sum of all sensor alerts
      */
     unsigned int total_nb_alerts;
     /**
-     * @brief Sum of all sensors messages
+     * @brief Sum of all sensor messages
      */
     unsigned int total_nb_messages;
     /**

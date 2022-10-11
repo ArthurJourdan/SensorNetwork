@@ -8,12 +8,19 @@
 #ifndef SENSORNETWORK_MPI_UTILS_H
 #define SENSORNETWORK_MPI_UTILS_H
 
+#include <mpi.h>
+#include <stdbool.h>
+
 typedef struct
 {
     int rank;
     int nb_processes;
+    // TODO add communicator ?
+    // TODO add coordinates ?
 } mpi_info_t;
 
-void init_MPI(int *ac, char **av[], mpi_info_t *process);
+bool get_comm_info(MPI_Comm comm, mpi_info_t *process, int coordinates[]);
+
+void print_coordinates(const int coordinates[]);
 
 #endif // SENSORNETWORK_MPI_UTILS_H

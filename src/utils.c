@@ -9,12 +9,6 @@
 #include <stdbool.h>
 #include <time.h>
 
-void init_rand(const unsigned int additional_seed)
-// todo pass rank as add seed to make each process random
-{
-    srand(time(NULL) + additional_seed);
-}
-
 float rand_float(const float max)
 {
     return ((float) rand() / (float) (RAND_MAX)) * max;
