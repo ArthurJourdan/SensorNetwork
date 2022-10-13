@@ -11,17 +11,20 @@
 #include <time.h>
 
 #include "utils.h"
+#include "grid.h"
+#include "sensor_network.h"
 
-typedef struct
-{
-    struct tm *timestamp;
-    f_vector_t coordinates;
-    float magnitude;
-    float depth;
-} sensor_reading_t;
-// This reading consists of date, time,
-//     latitude and longitude of the earthquake point, magnitude, and depth of the quake from the sensor.
-//  You can generate random float values to simulate the sensor readings and you can refer to this link as
-//  a reference. The following table lists sample readings (simulated at a cycle of 10 seconds):
+// Print
+void print_data(sensor_reading_t *data);
+
+// Get
+void read_data(sensor_reading_t *data);
+bool read_pack_data(grid_t *grid, char packed_data[DATA_PACK_SIZE]);
+void unpack_data(grid_t *grid, char packed_data[DATA_PACK_SIZE], sensor_reading_t *data);
+
+// Set
+bool read_send_data_neighbours(mpi_info_t *process, grid_t *grid);
+
+bool create_sensor_data_type(MPI_Datatype *new_data_type);
 
 #endif // SENSORNETWORK_SENSOR_H

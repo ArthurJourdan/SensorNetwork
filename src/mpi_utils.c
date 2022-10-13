@@ -9,9 +9,17 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "grid.h"
+#include "sensor_network.h"
 #include "mpi_utils.h"
+#include "sensor.h"
 
+/**
+ * @brief
+ * @param comm
+ * @param process
+ * @param coordinates array of size NB_DIMENSIONS
+ * @return
+ */
 bool get_comm_info(MPI_Comm comm, mpi_info_t *process, int coordinates[NB_DIMENSIONS])
 {
     int comm_is_not_world = false;
@@ -27,60 +35,99 @@ bool get_comm_info(MPI_Comm comm, mpi_info_t *process, int coordinates[NB_DIMENS
     return true;
 }
 
-static bool get_neighbors(MPI_Comm comm, int neighbors[NB_DIMENSIONS * 2])
+/**
+ * @brief
+ * @param comm
+ * @param neighbours Array of size NB_NEIGHBOURS
+ * @return
+ */
+bool get_neighbours(MPI_Comm comm, int neighbours[NB_NEIGHBOURS])
 {
     const int LOW = 0;
     const int HIGH = 1;
 
     for (int direction = 0; direction < NB_DIMENSIONS; ++direction) {
-        neighbors[(direction * 2) + LOW] = MPI_PROC_NULL;
-        neighbors[(direction * 2) + HIGH] = MPI_PROC_NULL;
-        MPI_Cart_shift(comm, direction, 1, &(neighbors[(direction * 2) + LOW]), &(neighbors[(direction * 2) + HIGH]));
+        neighbours[(direction * 2) + LOW] = MPI_PROC_NULL;
+        neighbours[(direction * 2) + HIGH] = MPI_PROC_NULL;
+        MPI_Cart_shift(comm, direction, 1, &(neighbours[(direction * 2) + LOW]), &(neighbours[(direction * 2) + HIGH]));
     }
-    //    printf("neighbors of %i : ", process->rank);
-    for (int i = 0; i < NB_DIMENSIONS * 2; i++) {
-        if (neighbors[i] != MPI_PROC_NULL) {
-            //            printf("%i%s", neighbors[i], (i == (NB_DIMENSIONS * 2) - 1 ? "" : ", "));
+#ifdef DEBUG
+    for (int i = 0; i < NB_NEIGHBOURS; i++) {
+        if (neighbours[i] != MPI_PROC_NULL) {
+            printf("%i%s", neighbours[i], (i == (NB_NEIGHBOURS) -1 ? "" : ", "));
         }
     }
-    //    printf("\n");
+    printf("\n");
+#endif
     return true;
 }
 
-// bool send_to_neighbors(MPI_Comm comm, mpi_info_t *process, grid_t *grid, const int neighbors[NB_DIMENSIONS * 2])
-//{
-//     //    int random_prime = get_random_prime();
-//     // artifact from lab from which this code is taken
-//
-//     MPI_Request send_request[NB_DIMENSIONS * 2 /* each dimension with possibly 2 neighbors each*/];
-//     MPI_Request recv_request[NB_DIMENSIONS * 2 /* each dimension with possibly 2 neighbors each*/];
-//     MPI_Status status[NB_DIMENSIONS * 2 /* each dimension with possibly 2 neighbors each*/];
-//     int received_primes[NB_DIMENSIONS * 2 /* each dimension with possibly 2 neighbors each*/] = {-1};
-//
-//     for (int i = 0; i < NB_DIMENSIONS * 2; i++) {
-//         if (neighbors[i] != MPI_PROC_NULL) {
-//             //            MPI_Isend(&random_prime, 1, MPI_INT, neighbors[i], 0, comm, &(send_request[i]));
-//             //            MPI_Irecv(&(received_primes[i]), 1, MPI_INT, neighbors[i], 0, comm, &(recv_request[i]));
-//         }
-//     }
-//     for (unsigned short i = 0; i < NB_DIMENSIONS * 2; i++) {
-//         if (neighbors[i] != MPI_PROC_NULL) {
-//             //            MPI_Wait(&(send_request[i]), &(status[i]));
-//             //            MPI_Wait(&(recv_request[i]), &(status[i]));
-//             //            printf("Process %i\treceived prime %i\tfrom %i\n", process->rank, received_primes[i],
-//             //            neighbors[i]);
-//         }
-//     }
-//     //    output_common_primes(random_prime, received_primes, grid->process_position);
-//     // artifact from lab from which this code is taken
-//     return true;
-// }
+#include "unistd.h" // todo remove
+/**
+ * @brief
+ * @param comm
+ * @param neighbours Array of size NB_NEIGHBOURS
+ * @param buf
+ * @param count
+ * @param recv_buf needs to be pre-allocated
+ * @return
+ */
+bool send_recv_neighbours(mpi_info_t *process, MPI_Comm comm, const int neighbours[NB_NEIGHBOURS],
+    char buf[DATA_PACK_SIZE], int count, char recv_buf[NB_NEIGHBOURS][DATA_PACK_SIZE])
+{
+    bool retval = true;
+    MPI_Request send_request[NB_NEIGHBOURS];
+    MPI_Request recv_request[NB_NEIGHBOURS];
+    MPI_Status status[NB_NEIGHBOURS];
+    int my_buf = -1;
+
+    for (int i = 0; i < NB_NEIGHBOURS; i++) {
+        if (neighbours[i] == MPI_PROC_NULL)
+            continue;
+        //        printf("%i trying to send to %i.\n", process->rank, neighbours[i]);
+        //        MPI_Isend(&process->rank, 1, MPI_INT, neighbours[i], 0, comm, &send_request[i]);
+        //        MPI_Irecv(&my_buf, 1, MPI_INT, neighbours[i], 0, comm, &recv_request[i]);
+        MPI_Isend(buf, count, MPI_PACKED, neighbours[i], 0, comm, &send_request[i]);
+        MPI_Irecv(recv_buf[i], count, MPI_PACKED, neighbours[i], 0, comm, &recv_request[i]);
+    }
+    char buff[1000] = {0};
+    int buff_size = 1000;
+
+    for (unsigned short i = 0; i < NB_NEIGHBOURS; i++) {
+        if (neighbours[i] == MPI_PROC_NULL)
+            continue;
+        MPI_Wait(&send_request[i], &status[i]);
+        if (status->MPI_ERROR != MPI_SUCCESS)
+            retval = false;
+        MPI_Wait(&recv_request[i], &status[i]);
+        if (status[i].MPI_ERROR != MPI_SUCCESS) {
+            printf("error occurred in %i with neighbour : %i : \n", process->rank, neighbours[i]);
+            MPI_Error_string(status[i].MPI_ERROR, buff, &buff_size);
+            write(1, buff, buff_size);
+            printf(".\n");
+            retval = false;
+        }
+        //        printf("%i received %i from %i.\n", process->rank, my_buf, neighbours[i]);
+    }
+    return retval;
+}
 
 void print_coordinates(const int coordinates[NB_DIMENSIONS])
 {
     printf("[");
     for (unsigned int i = 0; i < NB_DIMENSIONS; ++i) {
         printf("%i", coordinates[i]);
+        if (i < NB_DIMENSIONS - 1)
+            printf(", ");
+        else
+            printf("]\n");
+    }
+}
+void print_float_coordinates(const float coordinates[NB_DIMENSIONS])
+{
+    printf("[");
+    for (unsigned int i = 0; i < NB_DIMENSIONS; ++i) {
+        printf("%f", coordinates[i]);
         if (i < NB_DIMENSIONS - 1)
             printf(", ");
         else
