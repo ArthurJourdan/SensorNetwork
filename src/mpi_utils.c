@@ -8,6 +8,7 @@
 #include <mpi.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #include "sensor_network.h"
 #include "mpi_utils.h"
@@ -62,7 +63,25 @@ bool get_neighbours(MPI_Comm comm, int neighbours[NB_NEIGHBOURS])
     return true;
 }
 
-#include "unistd.h" // todo remove
+static void print_MPI_error(MPI_Status *status)
+{
+    char buff[1000] = {0};
+    int buff_size = 1000;
+
+    MPI_Error_string(status->MPI_ERROR, buff, &buff_size);
+    buff[buff_size++] = '\n';
+    write(2, buff, buff_size);
+}
+
+/*
+bool async_send_recv(char send_buff[DATA_PACK_SIZE], char recv_buff[DATA_PACK_SIZE], const int count, const int rank,
+    MPI_Comm comm, MPI_Request *send_req, MPI_Request *recv_req)
+{
+    MPI_Isend(send_buff, count, MPI_PACKED, rank, 0, comm, send_req);
+    MPI_Irecv(recv_buff, count, MPI_PACKED, rank, 0, comm, recv_req);
+}
+*/
+
 /**
  * @brief
  * @param comm
@@ -72,42 +91,34 @@ bool get_neighbours(MPI_Comm comm, int neighbours[NB_NEIGHBOURS])
  * @param recv_buf needs to be pre-allocated
  * @return
  */
-bool send_recv_neighbours(mpi_info_t *process, MPI_Comm comm, const int neighbours[NB_NEIGHBOURS],
-    char buf[DATA_PACK_SIZE], int count, char recv_buf[NB_NEIGHBOURS][DATA_PACK_SIZE])
+bool send_recv_neighbours(MPI_Comm comm, const int neighbours[NB_NEIGHBOURS], char buf[DATA_PACK_SIZE], int count,
+    char recv_buf[NB_NEIGHBOURS][DATA_PACK_SIZE])
 {
     bool retval = true;
     MPI_Request send_request[NB_NEIGHBOURS];
     MPI_Request recv_request[NB_NEIGHBOURS];
-    MPI_Status status[NB_NEIGHBOURS];
-    int my_buf = -1;
+    MPI_Status status[NB_NEIGHBOURS] = {MPI_SUCCESS};
 
     for (int i = 0; i < NB_NEIGHBOURS; i++) {
         if (neighbours[i] == MPI_PROC_NULL)
             continue;
-        //        printf("%i trying to send to %i.\n", process->rank, neighbours[i]);
-        //        MPI_Isend(&process->rank, 1, MPI_INT, neighbours[i], 0, comm, &send_request[i]);
-        //        MPI_Irecv(&my_buf, 1, MPI_INT, neighbours[i], 0, comm, &recv_request[i]);
         MPI_Isend(buf, count, MPI_PACKED, neighbours[i], 0, comm, &send_request[i]);
         MPI_Irecv(recv_buf[i], count, MPI_PACKED, neighbours[i], 0, comm, &recv_request[i]);
     }
-    char buff[1000] = {0};
-    int buff_size = 1000;
 
     for (unsigned short i = 0; i < NB_NEIGHBOURS; i++) {
         if (neighbours[i] == MPI_PROC_NULL)
             continue;
         MPI_Wait(&send_request[i], &status[i]);
-        if (status->MPI_ERROR != MPI_SUCCESS)
+        if (status[i].MPI_ERROR != MPI_SUCCESS) {
             retval = false;
+            print_MPI_error(&status[i]);
+        }
         MPI_Wait(&recv_request[i], &status[i]);
         if (status[i].MPI_ERROR != MPI_SUCCESS) {
-            printf("error occurred in %i with neighbour : %i : \n", process->rank, neighbours[i]);
-            MPI_Error_string(status[i].MPI_ERROR, buff, &buff_size);
-            write(1, buff, buff_size);
-            printf(".\n");
             retval = false;
+            print_MPI_error(&status[i]);
         }
-        //        printf("%i received %i from %i.\n", process->rank, my_buf, neighbours[i]);
     }
     return retval;
 }

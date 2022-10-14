@@ -23,7 +23,7 @@ bool read_pack_data(grid_t *grid, char packed_data[DATA_PACK_SIZE]);
 void unpack_data(grid_t *grid, char packed_data[DATA_PACK_SIZE], sensor_reading_t *data);
 
 // Set
-bool read_send_data_neighbours(mpi_info_t *process, grid_t *grid);
+bool read_send_data_neighbours(grid_t *grid);
 
 bool create_sensor_data_type(MPI_Datatype *new_data_type);
 

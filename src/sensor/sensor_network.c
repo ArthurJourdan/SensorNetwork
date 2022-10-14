@@ -23,46 +23,31 @@ bool create_sensor_data_type(MPI_Datatype *new_data_type)
         DATA_PACK_ELEM_NB, array_of_blocklength, array_of_displacement, array_of_types, new_data_type);
     return true;
 }
-/*
-bool read_send_data_neighbours(grid_t *grid)
-{
-    //    sensor_reading_t sensor_data;
-    char packed_data[DATA_PACK_SIZE];
-    char recv_packed_data[NB_NEIGHBOURS][DATA_PACK_SIZE] = {{0}};
-    sensor_reading_t recv_data[NB_NEIGHBOURS] = {0};
-    MPI_Datatype datatype;
 
-    if (!read_pack_data(grid, packed_data))
-        return false;
-    printf("sent packed data %i.\n", *packed_data);
-    create_sensor_data_type(&datatype);
-    if (!send_recv_neighbours(grid->comm, grid->neighbours, packed_data, 1, recv_packed_data, datatype))
-        return false;
-    printf("send_recv_neighbours over.\n");
-    for (unsigned int i = 0; i < NB_NEIGHBOURS; ++i) {
-        if (grid->neighbours[i] == MPI_PROC_NULL)
-            continue;
-        printf("recv packed data %i.\n", *(recv_packed_data[i]));
-        //        unpack_data(grid, recv_packed_data[i], &(recv_data[i]));
-        print_data(&(recv_data[i]));
-    };
-    return true;
-}*/
-bool read_send_data_neighbours(mpi_info_t *process, grid_t *grid)
+bool read_send_data_neighbours(grid_t *grid)
 {
     //    sensor_reading_t sensor_data;
     char packed_data[DATA_PACK_SIZE] = {0};
     char recv_packed_data[NB_NEIGHBOURS][DATA_PACK_SIZE] = {{0}};
-    sensor_reading_t recv_data[NB_NEIGHBOURS] = {0};
+    sensor_reading_t recv_data[NB_NEIGHBOURS] = {{0}};
 
     if (!read_pack_data(grid, packed_data))
         return false;
-    if (!send_recv_neighbours(process, grid->comm, grid->neighbours, packed_data, DATA_PACK_SIZE, recv_packed_data))
+
+    int comm_is_not_world = false;
+    MPI_Comm_compare(MPI_COMM_WORLD, grid->comm, &comm_is_not_world);
+    if (comm_is_not_world != MPI_UNEQUAL) {
+        printf("\n\n\n%s.\n", "not");
+        return false;
+    }
+
+    if (!send_recv_neighbours(grid->comm, grid->neighbours, packed_data, DATA_PACK_SIZE, recv_packed_data))
         return false;
     for (unsigned int i = 0; i < NB_NEIGHBOURS; ++i) {
         if (grid->neighbours[i] == MPI_PROC_NULL)
             continue;
-        printf("neighbour : %i.\n", grid->neighbours[i]);
+        //        write(1, recv_packed_data[i], DATA_PACK_SIZE);
+        //        printf(".\n");
         unpack_data(grid, recv_packed_data[i], &(recv_data[i]));
         print_data(&(recv_data[i]));
     };
