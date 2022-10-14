@@ -12,7 +12,6 @@
 
 #include "sensor_network.h"
 #include "mpi_utils.h"
-#include "sensor.h"
 
 /**
  * @brief
@@ -53,9 +52,11 @@ bool get_neighbours(MPI_Comm comm, int neighbours[NB_NEIGHBOURS])
         MPI_Cart_shift(comm, direction, 1, &(neighbours[(direction * 2) + LOW]), &(neighbours[(direction * 2) + HIGH]));
     }
 #ifdef DEBUG
+    bool print = false;
     for (int i = 0; i < NB_NEIGHBOURS; i++) {
         if (neighbours[i] != MPI_PROC_NULL) {
-            printf("%i%s", neighbours[i], (i == (NB_NEIGHBOURS) -1 ? "" : ", "));
+            printf("%s%i", (i && print ? ", " : ""), neighbours[i]);
+            print = true;
         }
     }
     printf("\n");

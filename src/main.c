@@ -6,9 +6,8 @@
  */
 
 #include "base_station.h"
-#include <stdio.h>
 #include <unistd.h>
-#include <mpi/mpi.h>
+#include <mpi.h>
 #include <stdlib.h>
 
 #include "grid.h"
