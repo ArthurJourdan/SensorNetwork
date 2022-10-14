@@ -24,7 +24,8 @@ typedef struct
 } f_vector_t;
 
 float rand_float(const float max);
-void init_rand(unsigned int additional_seed);
+
+bool convert_time(const time_t *in, struct tm **out);
 
 bool convert_time(const time_t *in, struct tm **out);
 
