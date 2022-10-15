@@ -13,13 +13,8 @@
 #define NB_DIMENSIONS 2
 #define NB_NEIGHBOURS (NB_DIMENSIONS * 2)
 
-typedef struct grid
-{
-    int size[NB_DIMENSIONS];
-    int process_position[NB_DIMENSIONS];
-    int neighbours[NB_NEIGHBOURS];
-    MPI_Comm comm;
-} grid_t;
+#define DATA_PACK_SIZE ((sizeof(int) * 9) + (sizeof(float) * NB_DIMENSIONS) + sizeof(float) + sizeof(float))
+// size of elements in struct tm, sensor position on grid, magnitude, depth
 
 typedef struct
 {
@@ -33,8 +28,18 @@ typedef struct
 //  You can generate random float values to simulate the sensor readings and you can refer to this link as
 //  a reference. The following table lists sample readings (simulated at a cycle of 10 seconds):
 
-#define DATA_PACK_ELEM_NB (9 + NB_DIMENSIONS + 1 + 1)
-#define DATA_PACK_SIZE    ((sizeof(int) * 9) + (sizeof(float) * NB_DIMENSIONS) + sizeof(float) + sizeof(float))
-// size of elements in struct tm, sensor position on grid, magnitude, depth
+typedef struct grid
+{
+    int size[NB_DIMENSIONS];
+    int process_position[NB_DIMENSIONS];
+    int neighbours[NB_NEIGHBOURS];
+    MPI_Comm comm;
+    MPI_Request pending_recv[NB_NEIGHBOURS * 2];
+    char recv_bufs[NB_NEIGHBOURS * 2][DATA_PACK_SIZE];
+    sensor_reading_t *data_history;
+    unsigned int data_history_size;
+} grid_t;
+
+// #define DATA_PACK_ELEM_NB (9 + NB_DIMENSIONS + 1 + 1)
 
 #endif // MAKEFILE_SENSOR_NETWORK_H

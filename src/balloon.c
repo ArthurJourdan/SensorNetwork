@@ -10,13 +10,14 @@
 
 sensor_reading_t balloon_buffer[BALLOON_BUFFER_SIZE];
 
+// todo use read_data function
 static void read_balloon_data(sensor_reading_t *out)
 {
     const time_t act_time = time(NULL);
     convert_time(&act_time, &out->timestamp);
     // todo coordinates
-    out->magnitude = rand_float(9.5f /*max magnitude*/);
-    out->depth = rand_float(700.f);
+    out->magnitude = rand_float(0, 9.5f /*max magnitude*/);
+    out->depth = rand_float(0, 700.f);
 }
 
 void balloon_thread(void *ptr)

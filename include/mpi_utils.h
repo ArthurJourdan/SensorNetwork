@@ -29,6 +29,8 @@ bool get_neighbours(MPI_Comm comm, int neighbours[NB_NEIGHBOURS]);
 bool send_recv_neighbours(MPI_Comm comm, const int neighbours[NB_NEIGHBOURS], char buf[DATA_PACK_SIZE], int count,
     char recv_buf[NB_NEIGHBOURS][DATA_PACK_SIZE]);
 
+// print
+void print_MPI_error(MPI_Status *status);
 void print_coordinates(const int coordinates[NB_DIMENSIONS]);
 void print_float_coordinates(const float coordinates[NB_DIMENSIONS]);
 

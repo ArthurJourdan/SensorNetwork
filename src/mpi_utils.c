@@ -64,7 +64,7 @@ bool get_neighbours(MPI_Comm comm, int neighbours[NB_NEIGHBOURS])
     return true;
 }
 
-static void print_MPI_error(MPI_Status *status)
+void print_MPI_error(MPI_Status *status)
 {
     char buff[1000] = {0};
     int buff_size = 1000;
@@ -105,6 +105,7 @@ bool send_recv_neighbours(MPI_Comm comm, const int neighbours[NB_NEIGHBOURS], ch
             continue;
         MPI_Isend(buf, count, MPI_PACKED, neighbours[i], 0, comm, &send_request[i]);
         MPI_Irecv(recv_buf[i], count, MPI_PACKED, neighbours[i], 0, comm, &recv_request[i]);
+        // todo update with new version
     }
 
     for (unsigned short i = 0; i < NB_NEIGHBOURS; i++) {
