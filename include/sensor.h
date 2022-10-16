@@ -22,8 +22,8 @@ void print_data(sensor_reading_t *data);
 // Get
 bool generate_geo_coordinates(grid_t *grid, float *latitude, float *longitude);
 void read_data(grid_t *grid, sensor_reading_t *data);
-bool pack_data(grid_t *grid, sensor_reading_t *data, char packed_data[DATA_PACK_SIZE]);
-bool unpack_data(grid_t *grid, char packed_data[DATA_PACK_SIZE], sensor_reading_t *data);
+bool pack_data(MPI_Comm comm, sensor_reading_t *data, char packed_data[DATA_PACK_SIZE]);
+bool unpack_data(MPI_Comm comm, char packed_data[DATA_PACK_SIZE], sensor_reading_t *data);
 
 float distance(float lat1, float lon1, float lat2, float lon2, char unit);
 bool check_neighbour_data(grid_t *grid);

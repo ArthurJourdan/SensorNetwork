@@ -102,7 +102,6 @@ bool send_neighbours(MPI_Comm comm, const int neighbours[NB_NEIGHBOURS], char bu
         if (neighbours[i] == MPI_PROC_NULL)
             continue;
         MPI_Isend(buf, count, MPI_PACKED, neighbours[i], 0, comm, &send_request[i]);
-        printf("sending to neighbours[%i] = %i\n", i, neighbours[i]);
     }
 
     for (unsigned short i = 0; i < NB_NEIGHBOURS; i++) {
