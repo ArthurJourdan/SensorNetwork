@@ -4,6 +4,8 @@
 #include <pthread.h>
 #include "mpi_utils.h"
 
+#define STR_EXIT "SIGQUIT"
+
 void base_station(mpi_info_t process);
 
 extern int THREADS_EXIT;

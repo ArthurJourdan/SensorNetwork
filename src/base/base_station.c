@@ -88,6 +88,12 @@ void base_station(mpi_info_t process)
 
     pthread_mutex_unlock(&MUTEX_EXIT);
 
+    // Send quit messages to the sensor network
+    for (int dest = 1; dest < process.nb_processes; dest++) {
+        MPI_Send(STR_EXIT, 7, MPI_CHAR, dest, 0, MPI_COMM_WORLD);
+    }
+
+    // Wait for threads to exit
     pthread_join(balloon_tid, NULL);
     pthread_join(reading_tid, NULL);
 }
