@@ -8,16 +8,16 @@
 #ifndef PROJECT_GRID_H
 #define PROJECT_GRID_H
 
-#include <stdbool.h>
-
 #include "utils.h"
+#include "mpi_utils.h"
+#include "grid.h"
+#include "sensor_network.h"
 
-typedef struct
-{
-    u_vector_t size;
-    u_vector_t process_position;
-} grid_t;
+#include <stdbool.h>
+#include <mpi.h>
 
-bool get_grid_size(u_vector_t *grid_size);
+bool get_grid_size(grid_t *grid);
+
+bool init_grid(mpi_info_t *process, grid_t *grid);
 
 #endif // PROJECT_GRID_H

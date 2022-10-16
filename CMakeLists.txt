@@ -16,17 +16,16 @@ find_package(Threads REQUIRED)
 include_directories(SYSTEM ${MPI_INCLUDE_PATH})
 include_directories(${INCLUDE_DIR})
 
-file(GLOB SRCS CONFIGURE_DEPENDS ${SRC_DIR}/*.c)
-
-# set(SRCS
-#     ${SRC_DIR}main.c
-#     ${SRC_DIR}grid_setting.c
-#     ${SRC_DIR}mpi_utils.c
-#     ${SRC_DIR}sensor.c
-#     ${SRC_DIR}utils.c)
+file(GLOB_RECURSE SRCS CONFIGURE_DEPENDS ${SRC_DIR}/*.c)
 
 add_executable(${SENSOR_NETWORK} ${SRCS})
 
-add_compile_options(-Wall -Wextra -pedantic -Werror)
+target_include_directories(${SENSOR_NETWORK} PRIVATE ${INCLUDE_DIR} ${MPI_C_INCLUDE_DIRS})
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    target_compile_options(${SENSOR_NETWORK} PRIVATE -Wall -Wextra -D DEBUG)
+endif ()
+
 
 target_link_libraries(${SENSOR_NETWORK} ${MPI_C_LIBRARIES} Threads::Threads)
+target_link_libraries(${SENSOR_NETWORK} m)

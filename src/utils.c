@@ -9,15 +9,10 @@
 #include <stdbool.h>
 #include <time.h>
 
-void init_rand(const unsigned int additional_seed)
-// todo pass rank as add seed to make each process random
+float rand_float(const float min, const float max)
 {
-    srand(time(NULL) + additional_seed);
-}
-
-float rand_float(const float max)
-{
-    return ((float) rand() / (float) (RAND_MAX)) * max;
+    float scale = (float) rand() / (float) RAND_MAX; /* [0, 1.0] */
+    return min + scale * (max - min);                /* [min, max] */
 }
 
 bool convert_time(const time_t *in, struct tm **out)
