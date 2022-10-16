@@ -7,7 +7,7 @@
 
 #define STR_EXIT            "SIGQUIT"
 #define BALLOON_BUFFER_SIZE 10
-#define POLLING_RATE        0.5 // seconds
+#define POLLING_RATE        1 // seconds
 
 void base_station(mpi_info_t process);
 void balloon_thread(void *ptr);

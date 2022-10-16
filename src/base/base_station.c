@@ -23,6 +23,16 @@ void sig_func(int sig)
     pthread_mutex_unlock(&MUTEX_EXIT);
 }
 
+void sentinel_detected()
+{
+    pthread_mutex_lock(&MUTEX_EXIT);
+    THREADS_EXIT = 1;
+    pthread_mutex_unlock(&MUTEX_EXIT);
+#ifdef DEBUG
+    printf("Sentinel value was detected.\nCommencing shutdown procedure...\n");
+#endif
+}
+
 void base_init_pthread(void *params)
 {
     pthread_attr_init(&attr);
@@ -34,16 +44,13 @@ void base_init_pthread(void *params)
 
 void base_quit(mpi_info_t process)
 {
-    // Send quit messages to the sensor network
-    for (int dest = 1; dest < process.nb_processes; dest++) {
-        MPI_Send(STR_EXIT, 7, MPI_CHAR, dest, 0, MPI_COMM_WORLD);
-    }
-
     // Wait for threads to exit
     pthread_join(balloon_tid, NULL);
     pthread_join(reading_tid, NULL);
 
-    printf("base station has exited");
+#ifdef DEBUG
+    printf("Base station has exited\n");
+#endif
 }
 
 void base_station(mpi_info_t process)
@@ -57,6 +64,10 @@ void base_station(mpi_info_t process)
     fflush(stdout);
     scanf(" %c", &sentinel);
 
+#ifdef DEBUG
+    printf("Sentinel value is: %c\n", sentinel);
+#endif
+
     signal(SIGQUIT, sig_func); // Register signal handler before going multithread
 
     base_init_pthread(&process);
@@ -66,10 +77,9 @@ void base_station(mpi_info_t process)
         pthread_mutex_unlock(&MUTEX_EXIT);
         scanf("%s", userInput); // Check new user input
         if (strlen(userInput) == 1 && userInput[0] == sentinel)
-            THREADS_EXIT = 1;
+            sentinel_detected();
         pthread_mutex_lock(&MUTEX_EXIT);
     }
     pthread_mutex_unlock(&MUTEX_EXIT);
-
     base_quit(process);
 }
