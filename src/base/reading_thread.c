@@ -12,7 +12,11 @@
 #include "sensor_network.h"
 #include "mpi_utils.h"
 
-void reading_quit(mpi_info_t process)
+static MPI_Status status;
+static char recv_bufs[DATA_PACK_SIZE];
+static sensor_reading_t recv_data;
+
+static void on_quit(mpi_info_t process)
 {
     MPI_Request request;
     // Send quit messages to the sensor network
@@ -24,14 +28,35 @@ void reading_quit(mpi_info_t process)
 #endif
 }
 
+static void on_msg_avail()
+{
+    // Recieve data
+    MPI_Recv(recv_bufs, DATA_PACK_SIZE, MPI_PACKED, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
+    unpack_data(MPI_COMM_WORLD, recv_bufs, &recv_data);
+
+#ifdef DEBUG
+    printf("Received data from process: %d\n", status.MPI_SOURCE);
+    print_data(&recv_data);
+#endif
+
+    /* the base station compares the received report with the
+    data in the shared global array (which is populated by the balloon seismic sensor) */
+
+    // If there is a match, the base station logs the report as a conclusive event (conclusive alert).
+    // if (match) {}
+
+    // If there is no match, the base station logs the report as an inconclusive event (inconclusive alert)
+    // else {}
+}
+
+/**
+ * @brief Entry point for reading thread
+ * @param ptr
+ */
 void reading_thread(void *ptr)
 {
-    mpi_info_t process = *(mpi_info_t *) ptr;
-    MPI_Status status;
     int msgAvail;
-    char recv_bufs[DATA_PACK_SIZE];
-    sensor_reading_t recv_data;
-
+    mpi_info_t process = *(mpi_info_t *) ptr;
     memset(recv_bufs, 0, sizeof(char) * (DATA_PACK_SIZE));
 
     pthread_mutex_lock(&MUTEX_EXIT);
@@ -39,27 +64,9 @@ void reading_thread(void *ptr)
         pthread_mutex_unlock(&MUTEX_EXIT);
         MPI_Iprobe(MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &msgAvail, &status);
 
-        fflush(stdout);
-        printf("hi\n");
+        if (msgAvail)
+            on_msg_avail();
 
-        if (msgAvail) {
-            MPI_Recv(recv_bufs, DATA_PACK_SIZE, MPI_PACKED, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
-            unpack_data(MPI_COMM_WORLD, recv_bufs, &recv_data);
-
-#ifdef DEBUG
-            printf("Received data from process: %d\n", status.MPI_SOURCE);
-            print_data(&recv_data);
-#endif
-        }
-
-        /* the base station compares the received report with the
-        data in the shared global array (which is populated by the balloon seismic sensor) */
-
-        // If there is a match, the base station logs the report as a conclusive event (conclusive alert).
-        // if (match) {}
-
-        // If there is no match, the base station logs the report as an inconclusive event (inconclusive alert)
-        // else {}
         pthread_mutex_lock(&MUTEX_EXIT);
         sleep(POLLING_RATE);
     }
@@ -67,5 +74,5 @@ void reading_thread(void *ptr)
     /* Continuing from (f), the base station sends a termination message to the sensor nodes to properly
     shutdown. The base station also sends a termination signal to the balloon seismic sensor to properly
     shutdown. */
-    reading_quit(process);
+    on_quit(process);
 }
