@@ -1,8 +1,8 @@
 #include <stdio.h>
-#include <pthread.h>
 #include <string.h>
-#include <mpi.h>
 #include <signal.h>
+#include <pthread.h>
+#include <mpi.h>
 #include "base_station.h"
 #include "sensor.h"
 
