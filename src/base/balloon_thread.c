@@ -15,7 +15,9 @@ static void read_balloon_data(sensor_reading_t *out)
 {
     const time_t act_time = time(NULL);
     convert_time(&act_time, &out->timestamp);
-    // todo coordinates
+    for (unsigned int i = 0; i < NB_DIMENSIONS; ++i) {
+        out->coordinates[i] = 0;
+    }
     out->magnitude = rand_float(0, 9.5f /*max magnitude*/);
     out->depth = rand_float(0, 700.f);
 }

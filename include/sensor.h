@@ -42,6 +42,7 @@ bool read_send_data_neighbours(grid_t *grid);
 bool save_data_in_history(sensor_reading_t **history, unsigned int *history_size, sensor_reading_t *data);
 
 // Finish
+bool random_error(void);
 bool finish_all_neighbour_recv(grid_t *grid);
 
 #endif // SENSORNETWORK_SENSOR_H

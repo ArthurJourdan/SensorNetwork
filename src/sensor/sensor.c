@@ -49,6 +49,12 @@ bool launch_sensor(grid_t *grid)
         act_time = time(NULL);
         read_send_data_neighbours(grid);
         check_neighbour_data(grid);
+        if (random_error()) {
+            break;
+        } else {
+            MPI_Send(STR_ALIVE, strlen(STR_ALIVE), MPI_CHAR, 0, 0, MPI_COMM_WORLD);
+        }
     }
+    finish_all_neighbour_recv(grid);
     return true;
 }

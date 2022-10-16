@@ -11,6 +11,7 @@
 #include "base_station.h"
 #include "sensor_network.h"
 #include "mpi_utils.h"
+#include "metrics.h"
 
 #define MATCH_THRESHOLD 2
 
