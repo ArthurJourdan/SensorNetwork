@@ -27,5 +27,5 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif ()
 
 
-target_link_libraries(${SENSOR_NETWORK} ${MPI_C_LIBRARIES})
+target_link_libraries(${SENSOR_NETWORK} ${MPI_C_LIBRARIES} Threads::Threads)
 target_link_libraries(${SENSOR_NETWORK} m)

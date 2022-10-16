@@ -39,7 +39,6 @@ static bool check_empty_data(sensor_reading_t *data)
 static bool data_cmp(sensor_reading_t *first, sensor_reading_t *second)
 {
     float remoteness;
-    printf("data_cmp.\n");
     if (first->magnitude <= 2.5 || second->magnitude <= 2.5)
         return false;
     if (NB_DIMENSIONS == 2) {
@@ -61,7 +60,7 @@ bool neighbour_data_cmp(grid_t *grid, const int neighbour_req_index)
     sensor_reading_t *my_data;
     int my_data_index;
 
-    unpack_data(grid, grid->recv_bufs[neighbour_req_index], &neighbour_data);
+    unpack_data(grid->comm, grid->recv_bufs[neighbour_req_index], &neighbour_data);
     my_data_index = find_data_from_time(&neighbour_data, grid->data_history, grid->data_history_size);
     if (my_data_index == -1)
         return false;
@@ -69,7 +68,6 @@ bool neighbour_data_cmp(grid_t *grid, const int neighbour_req_index)
     if (check_empty_data(my_data))
         return false;
     if (data_cmp(my_data, &neighbour_data))
-        printf("%s.\n", "sending to base station");
-    ; // send to base station
+        ; // send to base station
     return true;
 }

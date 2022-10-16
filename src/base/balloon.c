@@ -9,6 +9,7 @@
 #define BALLOON_CYCLE 0.2 // balloon sensor cycle time in seconds
 
 sensor_reading_t balloon_buffer[BALLOON_BUFFER_SIZE];
+unsigned int balloon_index = 0; // index used for ballon_buffer
 
 // todo use read_data function
 static void read_balloon_data(sensor_reading_t *out)
@@ -22,8 +23,11 @@ static void read_balloon_data(sensor_reading_t *out)
 
 void balloon_thread(void *ptr)
 {
-    unsigned int buff_idx = 0; // index used for ballon_buffer
+    pthread_mutex_lock(&MUTEX_EXIT);
+
     while (!THREADS_EXIT) {
+        pthread_mutex_unlock(&MUTEX_EXIT);
+
         /* This thread periodically produces seismic readings. This reading consists of date, time, latitude and
         longitude of the earthquake point, magnitude, and depth of the quake from the sensor. However, the
         generated magnitude always exceeds the predefined threshold (e.g., magnitude > 2.5) */
@@ -33,11 +37,13 @@ void balloon_thread(void *ptr)
 
         // sensor_data.timestamp =
 
-        balloon_buffer[buff_idx] = sensor_data;
+        balloon_buffer[balloon_index] = sensor_data;
 
-        if (++buff_idx >= BALLOON_BUFFER_SIZE)
-            buff_idx = 0;
+        if (++balloon_index >= BALLOON_BUFFER_SIZE)
+            balloon_index = 0;
+        pthread_mutex_lock(&MUTEX_EXIT);
 
         sleep(BALLOON_CYCLE);
     }
+    pthread_mutex_unlock(&MUTEX_EXIT);
 }

@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <mpi.h>
 
 #include "utils.h"
 #include "sensor.h"
@@ -77,40 +78,40 @@ void read_data(grid_t *grid, sensor_reading_t *data)
  * @param data_size [out]
  * @param need_response [in]
  */
-bool pack_data(grid_t *grid, sensor_reading_t *data, char packed_data[DATA_PACK_SIZE])
+bool pack_data(MPI_Comm comm, sensor_reading_t *data, char packed_data[DATA_PACK_SIZE])
 {
     int pos = 0; // packed data position
 
     // timestamp
-    if (MPI_Pack(&data->timestamp->tm_sec, 1, MPI_INT, packed_data, DATA_PACK_SIZE, &pos, grid->comm) != MPI_SUCCESS)
+    if (MPI_Pack(&data->timestamp->tm_sec, 1, MPI_INT, packed_data, DATA_PACK_SIZE, &pos, comm) != MPI_SUCCESS)
         return false;
-    if (MPI_Pack(&data->timestamp->tm_min, 1, MPI_INT, packed_data, DATA_PACK_SIZE, &pos, grid->comm) != MPI_SUCCESS)
+    if (MPI_Pack(&data->timestamp->tm_min, 1, MPI_INT, packed_data, DATA_PACK_SIZE, &pos, comm) != MPI_SUCCESS)
         return false;
-    if (MPI_Pack(&data->timestamp->tm_hour, 1, MPI_INT, packed_data, DATA_PACK_SIZE, &pos, grid->comm) != MPI_SUCCESS)
+    if (MPI_Pack(&data->timestamp->tm_hour, 1, MPI_INT, packed_data, DATA_PACK_SIZE, &pos, comm) != MPI_SUCCESS)
         return false;
-    if (MPI_Pack(&data->timestamp->tm_mday, 1, MPI_INT, packed_data, DATA_PACK_SIZE, &pos, grid->comm) != MPI_SUCCESS)
+    if (MPI_Pack(&data->timestamp->tm_mday, 1, MPI_INT, packed_data, DATA_PACK_SIZE, &pos, comm) != MPI_SUCCESS)
         return false;
-    if (MPI_Pack(&data->timestamp->tm_mon, 1, MPI_INT, packed_data, DATA_PACK_SIZE, &pos, grid->comm) != MPI_SUCCESS)
+    if (MPI_Pack(&data->timestamp->tm_mon, 1, MPI_INT, packed_data, DATA_PACK_SIZE, &pos, comm) != MPI_SUCCESS)
         return false;
-    if (MPI_Pack(&data->timestamp->tm_year, 1, MPI_INT, packed_data, DATA_PACK_SIZE, &pos, grid->comm) != MPI_SUCCESS)
+    if (MPI_Pack(&data->timestamp->tm_year, 1, MPI_INT, packed_data, DATA_PACK_SIZE, &pos, comm) != MPI_SUCCESS)
         return false;
-    if (MPI_Pack(&data->timestamp->tm_wday, 1, MPI_INT, packed_data, DATA_PACK_SIZE, &pos, grid->comm) != MPI_SUCCESS)
+    if (MPI_Pack(&data->timestamp->tm_wday, 1, MPI_INT, packed_data, DATA_PACK_SIZE, &pos, comm) != MPI_SUCCESS)
         return false;
-    if (MPI_Pack(&data->timestamp->tm_yday, 1, MPI_INT, packed_data, DATA_PACK_SIZE, &pos, grid->comm) != MPI_SUCCESS)
+    if (MPI_Pack(&data->timestamp->tm_yday, 1, MPI_INT, packed_data, DATA_PACK_SIZE, &pos, comm) != MPI_SUCCESS)
         return false;
-    if (MPI_Pack(&data->timestamp->tm_isdst, 1, MPI_INT, packed_data, DATA_PACK_SIZE, &pos, grid->comm) != MPI_SUCCESS)
+    if (MPI_Pack(&data->timestamp->tm_isdst, 1, MPI_INT, packed_data, DATA_PACK_SIZE, &pos, comm) != MPI_SUCCESS)
         return false;
     // !timestamp
 
     // coordinates
     for (unsigned int i = 0; i < NB_DIMENSIONS; ++i) {
-        if (MPI_Pack(&data->coordinates[i], 1, MPI_FLOAT, packed_data, DATA_PACK_SIZE, &pos, grid->comm) != MPI_SUCCESS)
+        if (MPI_Pack(&data->coordinates[i], 1, MPI_FLOAT, packed_data, DATA_PACK_SIZE, &pos, comm) != MPI_SUCCESS)
             return false;
     }
     // !coordinates
-    if (MPI_Pack(&data->magnitude, 1, MPI_FLOAT, packed_data, DATA_PACK_SIZE, &pos, grid->comm) != MPI_SUCCESS)
+    if (MPI_Pack(&data->magnitude, 1, MPI_FLOAT, packed_data, DATA_PACK_SIZE, &pos, comm) != MPI_SUCCESS)
         return false;
-    if (MPI_Pack(&data->depth, 1, MPI_FLOAT, packed_data, DATA_PACK_SIZE, &pos, grid->comm) != MPI_SUCCESS)
+    if (MPI_Pack(&data->depth, 1, MPI_FLOAT, packed_data, DATA_PACK_SIZE, &pos, comm) != MPI_SUCCESS)
         return false;
     return true;
 }
@@ -120,47 +121,44 @@ bool pack_data(grid_t *grid, sensor_reading_t *data, char packed_data[DATA_PACK_
  * @param grid [in]
  * @param packed_data [in]
  * @param data [out]
- * @param need_reponse [out]
  */
-bool unpack_data(grid_t *grid, char packed_data[DATA_PACK_SIZE], sensor_reading_t *data)
+bool unpack_data(MPI_Comm comm, char packed_data[DATA_PACK_SIZE], sensor_reading_t *data)
 {
     int pos = 0; // packed data position
     const time_t act_time = time(NULL);
 
     memset(data, 0, sizeof(sensor_reading_t));
     convert_time(&act_time, &data->timestamp);
-    if (MPI_Unpack(packed_data, DATA_PACK_SIZE, &pos, &data->timestamp->tm_sec, 1, MPI_INT, grid->comm) != MPI_SUCCESS)
+    if (MPI_Unpack(packed_data, DATA_PACK_SIZE, &pos, &data->timestamp->tm_sec, 1, MPI_INT, comm) != MPI_SUCCESS)
         return false;
-    if (MPI_Unpack(packed_data, DATA_PACK_SIZE, &pos, &data->timestamp->tm_min, 1, MPI_INT, grid->comm) != MPI_SUCCESS)
+    if (MPI_Unpack(packed_data, DATA_PACK_SIZE, &pos, &data->timestamp->tm_min, 1, MPI_INT, comm) != MPI_SUCCESS)
         return false;
-    if (MPI_Unpack(packed_data, DATA_PACK_SIZE, &pos, &data->timestamp->tm_hour, 1, MPI_INT, grid->comm) != MPI_SUCCESS)
+    if (MPI_Unpack(packed_data, DATA_PACK_SIZE, &pos, &data->timestamp->tm_hour, 1, MPI_INT, comm) != MPI_SUCCESS)
         return false;
-    if (MPI_Unpack(packed_data, DATA_PACK_SIZE, &pos, &data->timestamp->tm_mday, 1, MPI_INT, grid->comm) != MPI_SUCCESS)
+    if (MPI_Unpack(packed_data, DATA_PACK_SIZE, &pos, &data->timestamp->tm_mday, 1, MPI_INT, comm) != MPI_SUCCESS)
         return false;
-    if (MPI_Unpack(packed_data, DATA_PACK_SIZE, &pos, &data->timestamp->tm_mon, 1, MPI_INT, grid->comm) != MPI_SUCCESS)
+    if (MPI_Unpack(packed_data, DATA_PACK_SIZE, &pos, &data->timestamp->tm_mon, 1, MPI_INT, comm) != MPI_SUCCESS)
         return false;
-    if (MPI_Unpack(packed_data, DATA_PACK_SIZE, &pos, &data->timestamp->tm_year, 1, MPI_INT, grid->comm) != MPI_SUCCESS)
+    if (MPI_Unpack(packed_data, DATA_PACK_SIZE, &pos, &data->timestamp->tm_year, 1, MPI_INT, comm) != MPI_SUCCESS)
         return false;
-    if (MPI_Unpack(packed_data, DATA_PACK_SIZE, &pos, &data->timestamp->tm_wday, 1, MPI_INT, grid->comm) != MPI_SUCCESS)
+    if (MPI_Unpack(packed_data, DATA_PACK_SIZE, &pos, &data->timestamp->tm_wday, 1, MPI_INT, comm) != MPI_SUCCESS)
         return false;
-    if (MPI_Unpack(packed_data, DATA_PACK_SIZE, &pos, &data->timestamp->tm_yday, 1, MPI_INT, grid->comm) != MPI_SUCCESS)
+    if (MPI_Unpack(packed_data, DATA_PACK_SIZE, &pos, &data->timestamp->tm_yday, 1, MPI_INT, comm) != MPI_SUCCESS)
         return false;
-    if (MPI_Unpack(packed_data, DATA_PACK_SIZE, &pos, &data->timestamp->tm_isdst, 1, MPI_INT, grid->comm)
-        != MPI_SUCCESS)
+    if (MPI_Unpack(packed_data, DATA_PACK_SIZE, &pos, &data->timestamp->tm_isdst, 1, MPI_INT, comm) != MPI_SUCCESS)
         return false;
     // !timestamp
 
     // coordinates
     for (unsigned int i = 0; i < NB_DIMENSIONS; ++i) {
-        if (MPI_Unpack(packed_data, DATA_PACK_SIZE, &pos, &(data->coordinates[NB_DIMENSIONS]), 1, MPI_FLOAT, grid->comm)
-            != MPI_SUCCESS)
+        if (MPI_Unpack(packed_data, DATA_PACK_SIZE, &pos, &(data->coordinates[i]), 1, MPI_FLOAT, comm) != MPI_SUCCESS)
             return false;
     }
     // !coordinates
 
-    if (MPI_Unpack(packed_data, DATA_PACK_SIZE, &pos, &(data->magnitude), 1, MPI_FLOAT, grid->comm) != MPI_SUCCESS)
+    if (MPI_Unpack(packed_data, DATA_PACK_SIZE, &pos, &(data->magnitude), 1, MPI_FLOAT, comm) != MPI_SUCCESS)
         return false;
-    if (MPI_Unpack(packed_data, DATA_PACK_SIZE, &pos, &(data->depth), 1, MPI_FLOAT, grid->comm) != MPI_SUCCESS)
+    if (MPI_Unpack(packed_data, DATA_PACK_SIZE, &pos, &(data->depth), 1, MPI_FLOAT, comm) != MPI_SUCCESS)
         return false;
 #ifdef DEBUG
     printf("\nUnpacked data :\n");
