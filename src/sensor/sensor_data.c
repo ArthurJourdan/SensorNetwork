@@ -26,7 +26,8 @@ void print_data(sensor_reading_t *data)
     printf(".depth =\t%f\n\n", data->depth);
 }
 
-bool generate_geo_coordinates(grid_t *grid, float *latitude, float *longitude)
+bool generate_geo_coordinates(
+    int grid_size[NB_DIMENSIONS], int process_position[NB_DIMENSIONS], float *latitude, float *longitude)
 {
     if (NB_DIMENSIONS < 2)
         return false;
@@ -34,15 +35,17 @@ bool generate_geo_coordinates(grid_t *grid, float *latitude, float *longitude)
     const float lat_max = -45;  // approximately the ocean on Australia's east coast
     const float long_min = 150; // approximately the ocean on Australia's east coast
     const float long_max = 180; // approximately the ocean on Australia's east coast
-    const float coo_min_lat =
-        lat_min + ((lat_max - lat_min) / (float) grid->size[0]) * ((float) grid->process_position[0]);
-    const float coo_max_lat =
-        lat_min + ((lat_max - lat_min) / (float) grid->size[0]) * ((float) grid->process_position[0] + 1);
-    const float coo_min_long =
-        long_min + ((long_max - long_min) / (float) grid->size[1]) * ((float) grid->process_position[1]);
-    const float coo_max_long =
-        long_min + ((long_max - long_min) / (float) grid->size[1]) * ((float) grid->process_position[1] + 1);
+    float coo_min_lat = lat_min;
+    float coo_max_lat = lat_max;
+    float coo_min_long = long_min;
+    float coo_max_long = long_max;
 
+    if (grid_size && process_position) {
+        coo_min_lat = lat_min + ((lat_max - lat_min) / (float) grid_size[0]) * ((float) process_position[0]);
+        coo_max_lat = lat_min + ((lat_max - lat_min) / (float) grid_size[0]) * ((float) process_position[0] + 1);
+        coo_min_long = long_min + ((long_max - long_min) / (float) grid_size[1]) * ((float) process_position[1]);
+        coo_max_long = long_min + ((long_max - long_min) / (float) grid_size[1]) * ((float) process_position[1] + 1);
+    }
     // Latitude
     *latitude = rand_float(coo_min_lat, coo_max_lat);
     // Longitude
@@ -55,13 +58,13 @@ bool generate_geo_coordinates(grid_t *grid, float *latitude, float *longitude)
  * @param sensor_cartesian_coordinates [in]
  * @param out [out]
  */
-void read_data(grid_t *grid, sensor_reading_t *data)
+void read_data(int grid_size[NB_DIMENSIONS], int process_position[NB_DIMENSIONS], sensor_reading_t *data)
 {
     const time_t act_time = time(NULL);
 
     convert_time(&act_time, &data->timestamp);
     if (NB_DIMENSIONS == 2)
-        generate_geo_coordinates(grid, &data->coordinates[0], &data->coordinates[1]);
+        generate_geo_coordinates(grid_size, process_position, &data->coordinates[0], &data->coordinates[1]);
     else {
         for (unsigned int i = 0; i < NB_DIMENSIONS; ++i) {
             data->coordinates[i] = rand_float(0, 180);
@@ -179,19 +182,62 @@ static bool copy_sensor_data(sensor_reading_t *src, sensor_reading_t *dest)
     return true;
 }
 
+static bool data_cmp(sensor_reading_t *first, sensor_reading_t *second)
+{
+    if (first->timestamp->tm_sec != second->timestamp->tm_sec)
+        return false;
+    if (first->timestamp->tm_min != second->timestamp->tm_min)
+        return false;
+    if (first->timestamp->tm_hour != second->timestamp->tm_hour)
+        return false;
+    for (unsigned int i = 0; i < NB_DIMENSIONS; ++i) {
+        if (first->coordinates[i] != second->coordinates[i])
+            return false;
+    }
+    if (first->magnitude != second->magnitude)
+        return false;
+    if (first->depth != second->depth)
+        return false;
+    if (first->timestamp->tm_mday != second->timestamp->tm_mday)
+        return false;
+    if (first->timestamp->tm_mon != second->timestamp->tm_mon)
+        return false;
+    return true;
+}
+
+/**
+ * @brief
+ * @param history
+ * @param history_size
+ * @param data
+ * @return true if is a double, false otherwise
+ */
+bool check_history_double(sensor_reading_t **history, unsigned int *history_size, sensor_reading_t *data)
+{
+    for (unsigned int i = 0; i < *history_size; ++i) {
+        if (data_cmp(&(*history)[i], data)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 /**
  * @brief save data in history when magnitude is significant ( above 2.5 )
- * @param grid [in,out]
+ * @param history []
+ * @param history_size []
  * @param data [in]
  * @return true is succeed, false otherwise
  */
-bool save_data_in_history(grid_t *grid, sensor_reading_t *data)
+bool save_data_in_history(sensor_reading_t **history, unsigned int *history_size, sensor_reading_t *data)
 {
     if (data->magnitude < 2.5f)
         return false;
-    grid->data_history = realloc(grid->data_history, sizeof(sensor_reading_t) * (++grid->data_history_size));
-    if (!grid->data_history)
+    if (check_history_double(history, history_size, data))
         return false;
-    copy_sensor_data(data, &grid->data_history[grid->data_history_size - 1]);
+    *history = realloc(*history, sizeof(sensor_reading_t) * (++(*history_size)));
+    if (!(*history))
+        return false;
+    copy_sensor_data(data, &(*history)[(*history_size) - 1]);
     return true;
 }
