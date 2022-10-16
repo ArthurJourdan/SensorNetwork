@@ -27,7 +27,7 @@ static int find_data_from_time(sensor_reading_t *needle, sensor_reading_t *hayst
     return -1;
 }
 
-static bool data_cmp(sensor_reading_t *first, sensor_reading_t *second)
+bool sensor_data_cmp(sensor_reading_t *first, sensor_reading_t *second)
 {
     const float max_coherant_distance = 500; // in Kilometers
     float dist_2_points;                     // in Kilometers
@@ -70,7 +70,7 @@ bool neighbour_data_cmp(grid_t *grid, const int neighbour_req_index)
         return false;
     }
     my_data = &grid->data_history[my_data_index];
-    if (data_cmp(my_data, &neighbour_data)) {
+    if (sensor_data_cmp(my_data, &neighbour_data)) {
         pack_data(MPI_COMM_WORLD, my_data, packed_data[0]);
         pack_data(MPI_COMM_WORLD, &neighbour_data, packed_data[1]);
         // send to base station
