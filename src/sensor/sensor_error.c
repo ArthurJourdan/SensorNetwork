@@ -6,7 +6,6 @@
  */
 
 #include "utils.h"
-#include "mpi.h"
 
 /**
  * @brief tell if error must be generated
@@ -14,7 +13,12 @@
  */
 bool random_error(void)
 {
-    int rand_val = rand_int(0, 2);
+    int rand_val;
+#ifdef ERROR_PROBABILITY
+    rand_val = rand_int(0, ERROR_PROBABILITY);
+#else
+    rand_val = rand_int(0, 100);
+#endif
 
     if (!rand_val)
         return true;
