@@ -7,7 +7,7 @@
 #include "sensor.h"
 
 int THREADS_EXIT = 0;
-pthread_mutex_t MUTEX_EXIT;
+pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 static pthread_attr_t attr;
 static pthread_t reading_tid, balloon_tid;
@@ -18,17 +18,17 @@ void sig_func(int sig)
 #ifdef DEBUG
         printf("Signal Handler has been called\nEXITING...\n");
 #endif
-        pthread_mutex_lock(&MUTEX_EXIT);
+        pthread_mutex_lock(&lock);
         THREADS_EXIT = 1;
-        pthread_mutex_unlock(&MUTEX_EXIT);
+        pthread_mutex_unlock(&lock);
     }
 }
 
 static void sentinel_detected()
 {
-    pthread_mutex_lock(&MUTEX_EXIT);
+    pthread_mutex_lock(&lock);
     THREADS_EXIT = 1;
-    pthread_mutex_unlock(&MUTEX_EXIT);
+    pthread_mutex_unlock(&lock);
 #ifdef DEBUG
     printf("Sentinel value was detected.\nCommencing shutdown procedure...\n");
 #endif
@@ -37,10 +37,8 @@ static void sentinel_detected()
 static void init_pthread(void *params)
 {
     pthread_attr_init(&attr);
-    pthread_create(&reading_tid, &attr, (void *) reading_thread, params);
     pthread_create(&balloon_tid, &attr, (void *) balloon_thread, params);
-
-    pthread_mutex_init(&MUTEX_EXIT, NULL);
+    pthread_create(&reading_tid, &attr, (void *) reading_thread, params);
 }
 
 static char ask_sentinel_val()
@@ -61,6 +59,8 @@ static void on_quit()
     pthread_join(balloon_tid, NULL);
     pthread_join(reading_tid, NULL);
 
+    pthread_mutex_destroy(&lock);
+
 #ifdef DEBUG
     printf("Base station has exited\n");
 #endif
@@ -80,15 +80,15 @@ void base_station(mpi_info_t process)
     init_pthread(&process);
 
     // Main loop: watches stdin for sentinel value
-    pthread_mutex_lock(&MUTEX_EXIT);
+    pthread_mutex_lock(&lock);
     while (!THREADS_EXIT) {
-        pthread_mutex_unlock(&MUTEX_EXIT);
+        pthread_mutex_unlock(&lock);
         scanf("%s", userInput); // Check new user input
         if (strlen(userInput) == 1 && userInput[0] == sentinel)
             sentinel_detected();
-        pthread_mutex_lock(&MUTEX_EXIT);
+        pthread_mutex_lock(&lock);
     }
-    pthread_mutex_unlock(&MUTEX_EXIT);
+    pthread_mutex_unlock(&lock);
 
     on_quit();
 }

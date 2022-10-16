@@ -39,9 +39,9 @@ int main(int ac, char **av)
     MPI_Comm_compare(MPI_COMM_WORLD, my_grid.comm, &comm_is_not_world);
     if (comm_is_not_world == MPI_UNEQUAL) {
         launch_sensor(&my_grid);
-    } //    else {
-    //        base_station(process);
-    //    }
+    } else {
+        base_station(process);
+    }
     if (!ret_val)
         return 1;
     return 0;

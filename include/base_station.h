@@ -14,8 +14,9 @@ void balloon_thread(void *ptr);
 void reading_thread(void *ptr);
 
 extern int THREADS_EXIT;
-extern pthread_mutex_t MUTEX_EXIT;
 extern sensor_reading_t balloon_buffer[BALLOON_BUFFER_SIZE];
 extern unsigned int balloon_index;
+
+extern pthread_mutex_t lock;
 
 #endif

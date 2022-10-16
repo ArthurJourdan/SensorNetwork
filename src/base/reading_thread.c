@@ -12,7 +12,8 @@
 #include "sensor_network.h"
 #include "mpi_utils.h"
 
-#define MATCH_THRESHOLD 2
+#define MAGNITUDE_THRESHOLD 5
+#define DEPTH_THRESHOLD     500
 
 static MPI_Status status;
 static char recv_bufs[2][DATA_PACK_SIZE];
@@ -40,18 +41,33 @@ static void on_msg_avail()
     MPI_Recv(recv_bufs[1], DATA_PACK_SIZE, MPI_PACKED, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
     unpack_data(MPI_COMM_WORLD, recv_bufs[1], &recv_data[1]);
 
+    /* the base station compares the received report with the
+    data in the shared global array (which is populated by the balloon seismic sensor) */
+    sensor_reading_t balloon_data = balloon_buffer[balloon_index];
+    int match_magnitude = recv_data[0].magnitude < (balloon_data.magnitude + MAGNITUDE_THRESHOLD)
+        && recv_data[0].magnitude > (balloon_data.magnitude - MAGNITUDE_THRESHOLD);
+
+    int match_depth = recv_data[0].depth < (balloon_data.depth + DEPTH_THRESHOLD)
+        && recv_data[0].depth > (balloon_data.depth - DEPTH_THRESHOLD);
+
 #ifdef DEBUG
+    printf("\n\n\n");
+
+    printf("Balloon data: \n");
+    pthread_mutex_lock(&lock);
+    print_data(&balloon_buffer[balloon_index]);
+    pthread_mutex_unlock(&lock);
+
     printf("Received data from process: %d\n", status.MPI_SOURCE);
     print_data(&recv_data[0]);
 
     printf("Received neighbour data from process: %d\n", status.MPI_SOURCE);
     print_data(&recv_data[1]);
-#endif
 
-    /* the base station compares the received report with the
-    data in the shared global array (which is populated by the balloon seismic sensor) */
-    int match_magnitude = recv_data[0].magnitude < (balloon_buffer[balloon_index].magnitude + MATCH_THRESHOLD)
-        && recv_data[0].magnitude > (balloon_buffer[balloon_index].magnitude - MATCH_THRESHOLD);
+    printf("Match Magnitude: %d, Match Depth: %d\n", match_magnitude, match_depth);
+
+    printf("\n\n\n");
+#endif
 
     // If there is a match, the base station logs the report as a conclusive event (conclusive alert).
     // if (match) {}
@@ -70,21 +86,18 @@ void reading_thread(void *ptr)
     mpi_info_t process = *(mpi_info_t *) ptr;
     memset(recv_bufs, 0, sizeof(char) * (DATA_PACK_SIZE));
 
-    pthread_mutex_lock(&MUTEX_EXIT);
+    pthread_mutex_lock(&lock);
     while (!THREADS_EXIT) {
-        pthread_mutex_unlock(&MUTEX_EXIT);
+        pthread_mutex_unlock(&lock);
         MPI_Iprobe(MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &msgAvail, &status);
-
-        printf("Ballon data: \n");
-        print_data(&balloon_buffer[balloon_index]);
 
         if (msgAvail)
             on_msg_avail();
 
         sleep(POLLING_RATE);
-        pthread_mutex_lock(&MUTEX_EXIT);
+        pthread_mutex_lock(&lock);
     }
-    pthread_mutex_unlock(&MUTEX_EXIT);
+    pthread_mutex_unlock(&lock);
     /* Continuing from (f), the base station sends a termination message to the sensor nodes to properly
     shutdown. The base station also sends a termination signal to the balloon seismic sensor to properly
     shutdown. */
