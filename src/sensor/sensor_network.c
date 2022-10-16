@@ -57,8 +57,8 @@ bool check_neighbour_data(grid_t *grid)
         MPI_Iprobe(grid->neighbours[(i / 2)], 0, grid->comm, &flag, &status);
         if (!flag)
             continue;
-        init_neighbour_recv(grid, i);
         neighbour_data_cmp(grid, (int) i);
+        init_neighbour_recv(grid, i);
     }
     return true;
 }
