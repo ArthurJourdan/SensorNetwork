@@ -14,6 +14,7 @@
 #include "sensor.h"
 #include "sensor_network.h"
 #include "mpi_utils.h"
+#include "metrics.h"
 
 #define MAGNITUDE_THRESHOLD 5
 #define DEPTH_THRESHOLD     500

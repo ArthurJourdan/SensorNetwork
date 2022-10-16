@@ -13,15 +13,14 @@
 
 typedef struct
 {
-    mpi_info_t sensor;
-    u_vector_t coordinates;
+    int rank;
     unsigned int nb_messages;
     unsigned int nb_alerts;
 } sensor_message_metrics_t;
 
 typedef struct
 {
-    struct tm *start_time;
+    time_t start_time;
     /**
      * @brief Sum of all sensor alerts
      */
@@ -34,6 +33,7 @@ typedef struct
      * @brief Array containing metrics per sensor
      */
     sensor_message_metrics_t *sensors_metrics;
+    unsigned int nb_sensors;
 } base_station_metrics_t;
 
 #endif // MAKEFILE_METRICS_H

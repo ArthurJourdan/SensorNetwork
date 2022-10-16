@@ -99,9 +99,12 @@ void read_data(int grid_size[NB_DIMENSIONS], int process_position[NB_DIMENSIONS]
     const time_t act_time = time(NULL);
 
     convert_time(&act_time, &data->timestamp);
-    if (NB_DIMENSIONS == 2)
+    if (NB_DIMENSIONS == 2) {
+        for (unsigned int i = 0; i < NB_DIMENSIONS; ++i) {
+            data->coordinates[i] = 0;
+        }
         generate_geo_coordinates(grid_size, process_position, &data->coordinates[0], &data->coordinates[1]);
-    else {
+    } else {
         for (unsigned int i = 0; i < NB_DIMENSIONS; ++i) {
             data->coordinates[i] = rand_float(0, 180);
         }

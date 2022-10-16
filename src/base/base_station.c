@@ -10,7 +10,7 @@ int THREADS_EXIT = 0;
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 static pthread_attr_t attr;
-static pthread_t reading_tid, balloon_tid;
+static pthread_t reading_tid, balloon_tid, fault_detection_tid;
 
 void sig_func(int sig)
 {
@@ -39,11 +39,12 @@ static void init_pthread(void *params)
     pthread_attr_init(&attr);
     pthread_create(&balloon_tid, &attr, (void *) balloon_thread, params);
     pthread_create(&reading_tid, &attr, (void *) reading_thread, params);
+    pthread_create(&fault_detection_tid, &attr, (void *) fault_detection_thread, params); // todo
 }
 
 static char ask_sentinel_val()
 {
-    char sentinel;
+    char sentinel = 0;
     printf("Sentinel value: ");
     fflush(stdout);
     scanf(" %c", &sentinel);
@@ -73,7 +74,7 @@ static void on_quit()
 void base_station(mpi_info_t process)
 {
     char sentinel;
-    char userInput[64];
+    char userInput[64] = {0};
 
     sentinel = ask_sentinel_val();
     signal(SIGQUIT, sig_func); // Register signal handler before going multithread

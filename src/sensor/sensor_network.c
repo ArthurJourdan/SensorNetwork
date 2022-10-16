@@ -40,6 +40,15 @@ bool init_all_neighbour_recv(grid_t *grid)
     return retval;
 }
 
+bool finish_all_neighbour_recv(grid_t *grid)
+{
+    for (unsigned int i = 0; i < NB_NEIGHBOURS * 2; ++i) {
+        if (grid->neighbours[(i / 2)] == MPI_PROC_NULL)
+            return false;
+        MPI_Cancel(&grid->pending_recv[i]);
+    }
+}
+
 /**
  * @brief check if neighbour has sent a data
  * @param grid

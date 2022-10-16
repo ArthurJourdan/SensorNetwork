@@ -62,7 +62,6 @@ bool neighbour_data_cmp(grid_t *grid, const int neighbour_req_index)
     sensor_reading_t *my_data;
     char packed_data[2][DATA_PACK_SIZE];
     int my_data_index;
-    int neighbour_rank;
 
     unpack_data(grid->comm, grid->recv_bufs[neighbour_req_index], &neighbour_data);
     my_data_index = find_data_from_time(&neighbour_data, grid->data_history, grid->data_history_size);

@@ -17,8 +17,6 @@ typedef struct
 {
     int rank;
     int nb_processes;
-    // TODO add communicator ?
-    // TODO add coordinates ?
 } mpi_info_t;
 
 // Get
