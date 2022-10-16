@@ -127,14 +127,14 @@ void print_coordinates(const int coordinates[NB_DIMENSIONS])
             printf("]\n");
     }
 }
-void print_float_coordinates(const float coordinates[NB_DIMENSIONS])
+void dprint_float_coordinates(const int fd, const float coordinates[NB_DIMENSIONS])
 {
-    printf("[");
+    dprintf(fd, "[");
     for (unsigned int i = 0; i < NB_DIMENSIONS; ++i) {
-        printf("%f", coordinates[i]);
+        dprintf(fd, "%f", coordinates[i]);
         if (i < NB_DIMENSIONS - 1)
-            printf(", ");
+            dprintf(fd, ", ");
         else
-            printf("]\n");
+            dprintf(fd, "]\n");
     }
 }

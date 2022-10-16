@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <mpi.h>
+#include <unistd.h>
 
 #include "utils.h"
 #include "sensor.h"
@@ -21,9 +22,36 @@ void print_data(sensor_reading_t *data)
 {
     printf(".timestamp =\t%s", asctime(data->timestamp));
     printf(".coordinates =\t");
-    print_float_coordinates(data->coordinates);
+    dprint_float_coordinates(STDOUT_FILENO, data->coordinates);
     printf(".magnitude =\t%f\n", data->magnitude);
     printf(".depth =\t%f\n\n", data->depth);
+}
+
+void dprint_data_one_liner(const int fd, sensor_reading_t *data)
+{
+    dprintf(fd,
+        "%i:%i:%i,%i/%i/%i,%f,%f,",
+        data->timestamp->tm_mday,
+        data->timestamp->tm_mon,
+        data->timestamp->tm_year,
+        data->timestamp->tm_sec,
+        data->timestamp->tm_min,
+        data->timestamp->tm_hour,
+        data->magnitude,
+        data->depth);
+    dprint_float_coordinates(fd, data->coordinates);
+}
+
+void dprint_data_array(const int fd, sensor_reading_t *data_array, const unsigned int size)
+{
+    const char *header = "hour,date,magnitude,depth,coordinates";
+    const char *header_line = "-------------------------------------";
+
+    printf("%s\n%s\n", header, header_line);
+    for (unsigned int i = 0; i < size; ++i) {
+        dprint_data_one_liner(fd, &data_array[i]);
+    }
+    printf("%s\n", header_line);
 }
 
 bool generate_geo_coordinates(

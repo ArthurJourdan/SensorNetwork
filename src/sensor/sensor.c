@@ -10,10 +10,10 @@
 #include "base_station.h"
 
 #include <time.h>
-#include <stdio.h>
+#include <signal.h>
 #include <string.h>
 
-bool is_exit(void)
+static bool is_end(void)
 {
     int flag = 0;
     MPI_Status status = {0};
@@ -33,17 +33,22 @@ bool is_exit(void)
     return false;
 }
 
+void sig_handler()
+{
+    ;
+}
+
 bool launch_sensor(grid_t *grid)
 {
     time_t act_time = time(NULL);
 
+    signal(SIGQUIT, sig_handler);
     init_all_neighbour_recv(grid);
-    while (true /* todo set condition or a way to exit */) {
+    while (!is_end()) {
         while (act_time >= time(NULL)) {};
         act_time = time(NULL);
         read_send_data_neighbours(grid);
         check_neighbour_data(grid);
-        // check end
     }
     return true;
 }

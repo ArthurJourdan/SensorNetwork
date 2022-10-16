@@ -19,13 +19,15 @@ static MPI_Status status;
 static char recv_bufs[2][DATA_PACK_SIZE];
 static sensor_reading_t recv_data[2];
 
-static void on_quit(mpi_info_t process)
+static void on_quit(mpi_info_t *process)
 {
-    MPI_Request request;
     // Send quit messages to the sensor network
-    for (int dest = 1; dest < process.nb_processes; dest++) {
-        MPI_Isend(STR_EXIT, 7, MPI_CHAR, dest, 0, MPI_COMM_WORLD, &request);
+    /*MPI_Request request;*/
+    //     Send quit messages to the sensor network
+    for (int dest = 1; dest < process->nb_processes; dest++) {
+        MPI_Send(STR_EXIT, 7, MPI_CHAR, dest, 0, MPI_COMM_WORLD /*, &request*/);
     }
+
 #ifdef DEBUG
     printf("Reading thread has exited\n");
 #endif
@@ -101,5 +103,5 @@ void reading_thread(void *ptr)
     /* Continuing from (f), the base station sends a termination message to the sensor nodes to properly
     shutdown. The base station also sends a termination signal to the balloon seismic sensor to properly
     shutdown. */
-    on_quit(process);
+    on_quit(&process);
 }

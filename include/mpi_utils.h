@@ -31,6 +31,6 @@ bool send_neighbours(MPI_Comm comm, const int neighbours[NB_NEIGHBOURS], char bu
 // print
 void print_MPI_error(MPI_Status *status);
 void print_coordinates(const int coordinates[NB_DIMENSIONS]);
-void print_float_coordinates(const float coordinates[NB_DIMENSIONS]);
+void dprint_float_coordinates(const int fd, const float coordinates[NB_DIMENSIONS]);
 
 #endif // SENSORNETWORK_MPI_UTILS_H
