@@ -18,8 +18,8 @@ bool launch_sensor(grid_t *grid)
     while (true /* todo set condition or a way to exit */) {
         while (act_time >= time(NULL)) {};
         act_time = time(NULL);
-        //        read_send_data_neighbours(grid);
-        //        check_neighbour_data(grid);
+        read_send_data_neighbours(grid);
+        check_neighbour_data(grid);
     }
     return true;
 }

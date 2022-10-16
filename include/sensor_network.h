@@ -14,7 +14,7 @@
 #define NB_NEIGHBOURS (NB_DIMENSIONS * 2)
 
 #define DATA_PACK_SIZE ((sizeof(int) * 9) + (sizeof(float) * NB_DIMENSIONS) + sizeof(float) + sizeof(float))
-// size of elements in struct tm, sensor position on grid, magnitude, depth
+// size of elements in struct tm, sensor position on grid, magnitude, depth,
 
 typedef struct
 {

@@ -12,6 +12,7 @@
 #include <mpi.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 
 /**
  * @brief Get grid's size with user input
@@ -87,5 +88,7 @@ bool init_grid(mpi_info_t *process, grid_t *grid)
     }
     if (!init_grid_topology(MPI_COMM_WORLD, &grid->comm, process, grid))
         return false;
+    grid->data_history = NULL;
+    grid->data_history_size = 0;
     return true;
 }

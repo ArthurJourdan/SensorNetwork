@@ -92,31 +92,23 @@ bool async_send_recv(char send_buff[DATA_PACK_SIZE], char recv_buff[DATA_PACK_SI
  * @param recv_buf needs to be pre-allocated
  * @return
  */
-bool send_recv_neighbours(MPI_Comm comm, const int neighbours[NB_NEIGHBOURS], char buf[DATA_PACK_SIZE], int count,
-    char recv_buf[NB_NEIGHBOURS][DATA_PACK_SIZE])
+bool send_neighbours(MPI_Comm comm, const int neighbours[NB_NEIGHBOURS], char buf[DATA_PACK_SIZE], int count)
 {
     bool retval = true;
     MPI_Request send_request[NB_NEIGHBOURS];
-    MPI_Request recv_request[NB_NEIGHBOURS];
     MPI_Status status[NB_NEIGHBOURS] = {MPI_SUCCESS};
 
     for (int i = 0; i < NB_NEIGHBOURS; i++) {
         if (neighbours[i] == MPI_PROC_NULL)
             continue;
         MPI_Isend(buf, count, MPI_PACKED, neighbours[i], 0, comm, &send_request[i]);
-        MPI_Irecv(recv_buf[i], count, MPI_PACKED, neighbours[i], 0, comm, &recv_request[i]);
-        // todo update with new version
+        printf("sending to neighbours[%i] = %i\n", i, neighbours[i]);
     }
 
     for (unsigned short i = 0; i < NB_NEIGHBOURS; i++) {
         if (neighbours[i] == MPI_PROC_NULL)
             continue;
         MPI_Wait(&send_request[i], &status[i]);
-        if (status[i].MPI_ERROR != MPI_SUCCESS) {
-            retval = false;
-            print_MPI_error(&status[i]);
-        }
-        MPI_Wait(&recv_request[i], &status[i]);
         if (status[i].MPI_ERROR != MPI_SUCCESS) {
             retval = false;
             print_MPI_error(&status[i]);

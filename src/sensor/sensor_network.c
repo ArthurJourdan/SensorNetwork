@@ -7,6 +7,7 @@
 
 #include <mpi.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include "sensor.h"
 #include "mpi_utils.h"
@@ -15,6 +16,8 @@ bool init_neighbour_recv(grid_t *grid, const unsigned int neighbour_req_index)
 {
     if (grid->neighbours[(neighbour_req_index / 2)] == MPI_PROC_NULL)
         return false;
+    memset(grid->recv_bufs[neighbour_req_index], 0, sizeof(char) * (DATA_PACK_SIZE));
+    printf("init recv for %i.\n", grid->neighbours[neighbour_req_index / 2]);
     if (MPI_Irecv(grid->recv_bufs[neighbour_req_index],
             DATA_PACK_SIZE,
             MPI_PACKED,
@@ -32,7 +35,8 @@ bool init_all_neighbour_recv(grid_t *grid)
     bool retval = true;
 
     for (unsigned int i = 0; i < NB_NEIGHBOURS * 2; ++i) {
-        init_neighbour_recv(grid, i);
+        if (!init_neighbour_recv(grid, i))
+            retval = false;
     }
     return retval;
 }
@@ -45,7 +49,7 @@ bool init_all_neighbour_recv(grid_t *grid)
 bool check_neighbour_data(grid_t *grid)
 {
     int flag = 0;
-    MPI_Status status;
+    MPI_Status status = {0};
 
     for (unsigned int i = 0; i < NB_NEIGHBOURS * 2; ++i) {
         if (grid->neighbours[(i / 2)] == MPI_PROC_NULL)
@@ -59,7 +63,17 @@ bool check_neighbour_data(grid_t *grid)
             print_MPI_error(&status);
             continue;
         }
-        neighbour_data_cmp(grid, i, /*expected*/ false);
+        if (MPI_Test(&grid->pending_recv[i], &flag, &status) != MPI_SUCCESS)
+            continue;
+        if (!flag) // operation is not complete
+            continue;
+        if (status.MPI_ERROR != MPI_SUCCESS) {
+            print_MPI_error(&status);
+            continue;
+        }
+        printf("request trigger for %i.\n", i);
+        init_neighbour_recv(grid, i);
+        neighbour_data_cmp(grid, (int) i);
     }
     return true;
 }
@@ -68,21 +82,15 @@ bool read_send_data_neighbours(grid_t *grid)
 {
     sensor_reading_t data = {0};
     char packed_data[DATA_PACK_SIZE] = {0};
-    char recv_packed_data[NB_NEIGHBOURS][DATA_PACK_SIZE] = {{0}};
-    sensor_reading_t recv_data[NB_NEIGHBOURS] = {{0}};
 
     read_data(grid, &data);
     if (data.magnitude <= 2.5f) // todo put in another function ?
         return true;
+    save_data_in_history(grid, &data);
     if (!pack_data(grid, &data, packed_data))
         return false;
-    if (!send_recv_neighbours(grid->comm, grid->neighbours, packed_data, DATA_PACK_SIZE, recv_packed_data))
+    printf("[%i, %i] is sending.\n", grid->process_position[0], grid->process_position[1]);
+    if (!send_neighbours(grid->comm, grid->neighbours, packed_data, DATA_PACK_SIZE))
         return false;
-    for (unsigned int i = 0; i < NB_NEIGHBOURS; ++i) {
-        if (grid->neighbours[i] == MPI_PROC_NULL)
-            continue;
-        unpack_data(grid, recv_packed_data[i], &(recv_data[i]));
-    };
-    // todo cmp
     return true;
 }
