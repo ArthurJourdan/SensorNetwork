@@ -9,9 +9,10 @@
 #include <stdbool.h>
 #include <time.h>
 
-float rand_float(const float max)
+float rand_float(const float min, const float max)
 {
-    return ((float) rand() / (float) (RAND_MAX)) * max;
+    float scale = (float) rand() / (float) RAND_MAX; /* [0, 1.0] */
+    return min + scale * (max - min);                /* [min, max] */
 }
 
 bool convert_time(const time_t *in, struct tm **out)

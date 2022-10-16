@@ -18,14 +18,6 @@ include_directories(${INCLUDE_DIR})
 
 file(GLOB_RECURSE SRCS CONFIGURE_DEPENDS ${SRC_DIR}/*.c)
 
-#set(SRCS
-#    ${SRC_DIR}main.c
-#    ${SRC_DIR}grid_setting.c
-#    ${SRC_DIR}mpi_utils.c
-#    ${SRC_DIR}sensor/sensor.c
-#    ${SRC_DIR}sensor/sensor_network.c
-#    ${SRC_DIR}utils.c)
-
 add_executable(${SENSOR_NETWORK} ${SRCS})
 
 target_include_directories(${SENSOR_NETWORK} PRIVATE ${INCLUDE_DIR} ${MPI_C_INCLUDE_DIRS})
@@ -36,3 +28,4 @@ endif ()
 
 
 target_link_libraries(${SENSOR_NETWORK} ${MPI_C_LIBRARIES} Threads::Threads)
+target_link_libraries(${SENSOR_NETWORK} m)
