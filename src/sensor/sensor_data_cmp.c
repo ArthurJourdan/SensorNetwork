@@ -6,6 +6,7 @@
  */
 
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "grid.h"
 #include "sensor.h"
@@ -26,16 +27,6 @@ static int find_data_from_time(sensor_reading_t *needle, sensor_reading_t *hayst
     return -1;
 }
 
-static bool check_empty_data(sensor_reading_t *data)
-{
-    char *tmp = (char *) data;
-    for (unsigned int i = 0; i < DATA_PACK_SIZE; ++i) {
-        if (tmp[i])
-            return true;
-    }
-    return false;
-}
-
 static bool data_cmp(sensor_reading_t *first, sensor_reading_t *second)
 {
     const float max_coherant_distance = 500; // in Kilometers
@@ -47,7 +38,7 @@ static bool data_cmp(sensor_reading_t *first, sensor_reading_t *second)
         dist_2_points =
             distance(first->coordinates[0], first->coordinates[1], second->coordinates[0], second->coordinates[1], 'K');
 #ifdef DEBUG
-        printf("Distance between [%f, %f] and [%f, %f]: %f.\n",
+        printf("Distance between [%f, %f] and [%f, %f]: %fkm\n",
             first->coordinates[0],
             first->coordinates[1],
             second->coordinates[0],
@@ -69,7 +60,7 @@ bool neighbour_data_cmp(grid_t *grid, const int neighbour_req_index)
 {
     sensor_reading_t neighbour_data;
     sensor_reading_t *my_data;
-    char packed_data[DATA_PACK_SIZE * 2];
+    char packed_data[2][DATA_PACK_SIZE];
     int my_data_index;
     int neighbour_rank;
 
@@ -79,12 +70,12 @@ bool neighbour_data_cmp(grid_t *grid, const int neighbour_req_index)
         return false;
     }
     my_data = &grid->data_history[my_data_index];
-    pack_data(MPI_COMM_WORLD, my_data, packed_data);
-    //    pack_data(MPI_COMM_WORLD, &neighbour_data, &packed_data[DATA_PACK_SIZE]);
     if (data_cmp(my_data, &neighbour_data)) {
+        pack_data(MPI_COMM_WORLD, my_data, packed_data[0]);
+        pack_data(MPI_COMM_WORLD, &neighbour_data, packed_data[1]);
         // send to base station
-        MPI_Send(packed_data, DATA_PACK_SIZE, MPI_PACKED, 0, 0, MPI_COMM_WORLD);
-        //        MPI_Send(&packed_data[DATA_PACK_SIZE], DATA_PACK_SIZE, MPI_PACKED, 0, 0, MPI_COMM_WORLD);
+        MPI_Send(packed_data[0], DATA_PACK_SIZE, MPI_PACKED, 0, 0, MPI_COMM_WORLD);
+        MPI_Send(packed_data[1], DATA_PACK_SIZE, MPI_PACKED, 0, 0, MPI_COMM_WORLD);
     }
     return true;
 }

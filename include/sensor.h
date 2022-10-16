@@ -20,8 +20,9 @@ bool launch_sensor(grid_t *grid);
 void print_data(sensor_reading_t *data);
 
 // Get
-bool generate_geo_coordinates(grid_t *grid, float *latitude, float *longitude);
-void read_data(grid_t *grid, sensor_reading_t *data);
+bool generate_geo_coordinates(
+    int grid_size[NB_DIMENSIONS], int process_position[NB_DIMENSIONS], float *latitude, float *longitude);
+void read_data(int grid_size[NB_DIMENSIONS], int process_position[NB_DIMENSIONS], sensor_reading_t *data);
 bool pack_data(MPI_Comm comm, sensor_reading_t *data, char packed_data[DATA_PACK_SIZE]);
 bool unpack_data(MPI_Comm comm, char packed_data[DATA_PACK_SIZE], sensor_reading_t *data);
 
@@ -35,6 +36,6 @@ bool init_all_neighbour_recv(grid_t *grid);
 
 bool read_send_data_neighbours(grid_t *grid);
 
-bool save_data_in_history(grid_t *grid, sensor_reading_t *data);
+bool save_data_in_history(sensor_reading_t **history, unsigned int *history_size, sensor_reading_t *data);
 
 #endif // SENSORNETWORK_SENSOR_H

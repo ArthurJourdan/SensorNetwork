@@ -40,6 +40,4 @@ typedef struct grid
     unsigned int data_history_size;
 } grid_t;
 
-// #define DATA_PACK_ELEM_NB (9 + NB_DIMENSIONS + 1 + 1)
-
 #endif // MAKEFILE_SENSOR_NETWORK_H
