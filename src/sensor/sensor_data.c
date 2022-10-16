@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <mpi.h>
 #include <unistd.h>
 
@@ -42,16 +43,23 @@ void dprint_data_one_liner(const int fd, sensor_reading_t *data)
     dprint_float_coordinates(fd, data->coordinates);
 }
 
-void dprint_data_array(const int fd, sensor_reading_t *data_array, const unsigned int size)
+void dprint_data_array(const int fd, sensor_reading_t *data_array, const unsigned int size, bool match)
 {
+    static bool used = false;
     const char *header = "hour,date,magnitude,depth,coordinates";
-    const char *header_line = "-------------------------------------";
 
-    printf("%s\n%s\n", header, header_line);
+    if (!used) {
+        dprintf(fd, "%s\n", header);
+        used = true;
+    }
+
+    if (match)
+        dprintf(fd, "CONCLUSIVE\n");
+    else
+        dprintf(fd, "INCONCLUSIVE\n");
     for (unsigned int i = 0; i < size; ++i) {
         dprint_data_one_liner(fd, &data_array[i]);
     }
-    printf("%s\n", header_line);
 }
 
 bool generate_geo_coordinates(
