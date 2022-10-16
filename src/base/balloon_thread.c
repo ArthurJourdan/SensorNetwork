@@ -1,7 +1,6 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#include "balloon.h"
 #include "sensor.h"
 #include "base_station.h"
 #include "utils.h"
