@@ -102,7 +102,6 @@ bool send_neighbours(MPI_Comm comm, const int neighbours[NB_NEIGHBOURS], char bu
         if (neighbours[i] == MPI_PROC_NULL)
             continue;
         MPI_Isend(buf, count, MPI_PACKED, neighbours[i], 0, comm, &send_request[i]);
-        printf("sending to neighbours[%i] = %i\n", i, neighbours[i]);
     }
 
     for (unsigned short i = 0; i < NB_NEIGHBOURS; i++) {
@@ -128,14 +127,14 @@ void print_coordinates(const int coordinates[NB_DIMENSIONS])
             printf("]\n");
     }
 }
-void print_float_coordinates(const float coordinates[NB_DIMENSIONS])
+void dprint_float_coordinates(const int fd, const float coordinates[NB_DIMENSIONS])
 {
-    printf("[");
+    dprintf(fd, "[");
     for (unsigned int i = 0; i < NB_DIMENSIONS; ++i) {
-        printf("%f", coordinates[i]);
+        dprintf(fd, "%f", coordinates[i]);
         if (i < NB_DIMENSIONS - 1)
-            printf(", ");
+            dprintf(fd, ", ");
         else
-            printf("]\n");
+            dprintf(fd, "]\n");
     }
 }

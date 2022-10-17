@@ -15,6 +15,13 @@ float rand_float(const float min, const float max)
     return min + scale * (max - min);                /* [min, max] */
 }
 
+int rand_int(const int min, const int max)
+{
+    int val = rand();
+
+    return min + (val % ((max + 1) - min)); /* [min, max] */
+}
+
 bool convert_time(const time_t *in, struct tm **out)
 {
     // todo free(out) ?

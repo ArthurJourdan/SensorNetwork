@@ -13,6 +13,9 @@
 #define NB_DIMENSIONS 2
 #define NB_NEIGHBOURS (NB_DIMENSIONS * 2)
 
+// probability of an error occurring (1 / ERROR_PROBABILITY)
+#define ERROR_PROBABILITY 500
+
 #define DATA_PACK_SIZE ((sizeof(int) * 9) + (sizeof(float) * NB_DIMENSIONS) + sizeof(float) + sizeof(float))
 // size of elements in struct tm, sensor position on grid, magnitude, depth,
 
@@ -39,7 +42,5 @@ typedef struct grid
     sensor_reading_t *data_history;
     unsigned int data_history_size;
 } grid_t;
-
-// #define DATA_PACK_ELEM_NB (9 + NB_DIMENSIONS + 1 + 1)
 
 #endif // MAKEFILE_SENSOR_NETWORK_H

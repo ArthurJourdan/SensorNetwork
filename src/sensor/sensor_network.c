@@ -17,7 +17,6 @@ bool init_neighbour_recv(grid_t *grid, const unsigned int neighbour_req_index)
     if (grid->neighbours[(neighbour_req_index / 2)] == MPI_PROC_NULL)
         return false;
     memset(grid->recv_bufs[neighbour_req_index], 0, sizeof(char) * (DATA_PACK_SIZE));
-    printf("init recv for %i.\n", grid->neighbours[neighbour_req_index / 2]);
     if (MPI_Irecv(grid->recv_bufs[neighbour_req_index],
             DATA_PACK_SIZE,
             MPI_PACKED,
@@ -41,6 +40,15 @@ bool init_all_neighbour_recv(grid_t *grid)
     return retval;
 }
 
+bool finish_all_neighbour_recv(grid_t *grid)
+{
+    for (unsigned int i = 0; i < NB_NEIGHBOURS * 2; ++i) {
+        if (grid->neighbours[(i / 2)] == MPI_PROC_NULL)
+            return false;
+        MPI_Cancel(&grid->pending_recv[i]);
+    }
+}
+
 /**
  * @brief check if neighbour has sent a data
  * @param grid
@@ -55,25 +63,11 @@ bool check_neighbour_data(grid_t *grid)
         if (grid->neighbours[(i / 2)] == MPI_PROC_NULL)
             continue;
         flag = 0;
-        if (MPI_Request_get_status(grid->pending_recv[i], &flag, &status) != MPI_SUCCESS)
+        MPI_Iprobe(grid->neighbours[(i / 2)], 0, grid->comm, &flag, &status);
+        if (!flag)
             continue;
-        if (!flag) // operation is not complete
-            continue;
-        if (status.MPI_ERROR != MPI_SUCCESS) {
-            print_MPI_error(&status);
-            continue;
-        }
-        if (MPI_Test(&grid->pending_recv[i], &flag, &status) != MPI_SUCCESS)
-            continue;
-        if (!flag) // operation is not complete
-            continue;
-        if (status.MPI_ERROR != MPI_SUCCESS) {
-            print_MPI_error(&status);
-            continue;
-        }
-        printf("request trigger for %i.\n", i);
-        init_neighbour_recv(grid, i);
         neighbour_data_cmp(grid, (int) i);
+        init_neighbour_recv(grid, i);
     }
     return true;
 }
@@ -83,13 +77,12 @@ bool read_send_data_neighbours(grid_t *grid)
     sensor_reading_t data = {0};
     char packed_data[DATA_PACK_SIZE] = {0};
 
-    read_data(grid, &data);
+    read_data(grid->size, grid->process_position, &data);
     if (data.magnitude <= 2.5f) // todo put in another function ?
         return true;
-    save_data_in_history(grid, &data);
-    if (!pack_data(grid, &data, packed_data))
+    save_data_in_history(&grid->data_history, &grid->data_history_size, &data);
+    if (!pack_data(grid->comm, &data, packed_data))
         return false;
-    printf("[%i, %i] is sending.\n", grid->process_position[0], grid->process_position[1]);
     if (!send_neighbours(grid->comm, grid->neighbours, packed_data, DATA_PACK_SIZE))
         return false;
     return true;
