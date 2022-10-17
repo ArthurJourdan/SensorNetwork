@@ -40,6 +40,7 @@ bool init_all_neighbour_recv(grid_t *grid);
 bool read_send_data_neighbours(grid_t *grid);
 
 bool save_data_in_history(sensor_reading_t **history, unsigned int *history_size, sensor_reading_t *data);
+bool copy_sensor_data(sensor_reading_t *src, sensor_reading_t *dest);
 
 // Finish
 bool random_error(void);

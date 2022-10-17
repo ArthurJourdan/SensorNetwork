@@ -19,55 +19,66 @@
 #define MAGNITUDE_THRESHOLD 5
 #define DEPTH_THRESHOLD     500
 
-static int fd_conclusive, fd_inconclusive;
+static int fd_conclusive, fd_inconclusive, fd_metrics;
 static MPI_Status status;
-static base_station_metrics_t metrics;
+static char recv_bufs[2][DATA_PACK_SIZE];
+sensor_reading_t recv_data[2];
+base_station_metrics_t metrics;
 
 static void on_init(mpi_info_t *process)
 {
-    fd_conclusive = open("alert_conclusive.txt", O_CREAT | O_WRONLY);
-    fd_inconclusive = open("alert_inconclusive.txt", O_CREAT | O_WRONLY);
+    memset(recv_bufs, 0, sizeof(char) * DATA_PACK_SIZE * 2);
+    fd_conclusive = open("alert_conclusive.txt", O_CREAT | O_WRONLY, 0666);
+    fd_inconclusive = open("alert_inconclusive.txt", O_CREAT | O_WRONLY, 0666);
+    fd_metrics = open("metrics.txt", O_CREAT | O_WRONLY, 0666);
     init_metrics(&metrics, process->nb_processes);
 }
 
 static void on_quit(mpi_info_t *process)
 {
-    // MPI_Request request;
+    dprint_metrics(fd_metrics, &metrics);
+
     // Send quit messages to the sensor network
     for (int dest = 1; dest < process->nb_processes; dest++) {
         printf("Sending exit message to process %d\n", dest);
-        MPI_Send(STR_EXIT, (int) sizeof(STR_EXIT) * sizeof(char) - 1, MPI_CHAR, dest, 0, MPI_COMM_WORLD /*&request*/);
+        MPI_Send(STR_EXIT, (int) sizeof(STR_EXIT) * sizeof(char) - 1, MPI_CHAR, dest, 0, MPI_COMM_WORLD);
     }
 
     free_metrics(&metrics);
     close(fd_conclusive);
     close(fd_inconclusive);
-// #ifdef DEBUG
+#ifdef DEBUG
     printf("Reading thread has exited\n");
-// #endif
+#endif
 }
 
 static void on_msg_avail()
 {
-    char recv_bufs[2][DATA_PACK_SIZE];
-    sensor_reading_t recv_data[2];
+    int sources[2];
+    sensor_reading_t balloon_data;
 
-    unsigned int sources[2];
     // Receive data
     MPI_Recv(recv_bufs[0], DATA_PACK_SIZE, MPI_PACKED, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
     unpack_data(MPI_COMM_WORLD, recv_bufs[0], &recv_data[0]);
-
-    // Log Metrics
-    metrics.sensors_metrics[status.MPI_SOURCE - 1].nb_messages++;
+    sources[0] = status.MPI_SOURCE;
 
     // Receive neighbour
     MPI_Recv(recv_bufs[1], DATA_PACK_SIZE, MPI_PACKED, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
     unpack_data(MPI_COMM_WORLD, recv_bufs[1], &recv_data[1]);
+    sources[1] = status.MPI_SOURCE;
 
     /* the base station compares the received report with the
     data in the shared global array (which is populated by the balloon seismic sensor) */
-    sensor_reading_t balloon_data = balloon_buffer[balloon_index];
+    pthread_mutex_lock(&lock);
+    copy_sensor_data(&balloon_buffer[balloon_index], &balloon_data);
+    pthread_mutex_unlock(&lock);
     bool match = sensor_data_cmp(&recv_data[0], &balloon_data);
+
+    // Log Metrics
+    metrics.sensors_metrics[sources[0] - 1].nb_messages++;
+    metrics.sensors_metrics[sources[1] - 1].nb_messages++;
+
+    metrics.total_nb_messages++;
 
 #ifdef DEBUG
     printf("\n\n\n");
@@ -98,9 +109,12 @@ static void on_msg_avail()
     data_array[1] = recv_data[1];
     data_array[2] = balloon_data;
 
-    if (match)
+    if (match) {
+        metrics.sensors_metrics[sources[0] - 1].nb_alerts++;
+        metrics.sensors_metrics[sources[1] - 1].nb_alerts++;
+        metrics.total_nb_alerts++;
         dprint_data_array(fd_conclusive, data_array, 3);
-    else
+    } else
         dprint_data_array(fd_inconclusive, data_array, 3);
 }
 

@@ -38,7 +38,7 @@ typedef struct
 
 bool init_sensor_metrics(sensor_message_metrics_t *sensor_metrics);
 bool init_metrics(base_station_metrics_t *metrics, const unsigned int nb_sensors);
+bool dprint_metrics(const int fd, base_station_metrics_t *metrics);
 bool free_metrics(base_station_metrics_t *metrics);
-
 
 #endif // MAKEFILE_METRICS_H

@@ -13,6 +13,7 @@ bool init_sensor_metrics(sensor_message_metrics_t *sensor_metrics)
 {
     sensor_metrics->nb_messages = 0;
     sensor_metrics->nb_alerts = 0;
+    return true;
 }
 
 bool init_metrics(base_station_metrics_t *metrics, const unsigned int nb_sensors)
@@ -33,6 +34,11 @@ bool init_metrics(base_station_metrics_t *metrics, const unsigned int nb_sensors
         }
     }
     return retval;
+}
+
+bool dprint_metrics(const int fd, base_station_metrics_t *metrics)
+{
+    // TODO
 }
 
 bool free_metrics(base_station_metrics_t *metrics)

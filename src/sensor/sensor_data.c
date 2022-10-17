@@ -204,7 +204,7 @@ bool unpack_data(MPI_Comm comm, char packed_data[DATA_PACK_SIZE], sensor_reading
     return true;
 }
 
-static bool copy_sensor_data(sensor_reading_t *src, sensor_reading_t *dest)
+bool copy_sensor_data(sensor_reading_t *src, sensor_reading_t *dest)
 {
     dest->timestamp = src->timestamp;
     for (unsigned int i = 0; i < NB_DIMENSIONS; ++i) {

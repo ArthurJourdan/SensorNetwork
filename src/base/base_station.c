@@ -91,4 +91,6 @@ void base_station(mpi_info_t process)
         pthread_mutex_lock(&lock);
     }
     pthread_mutex_unlock(&lock);
+
+    on_quit();
 }
