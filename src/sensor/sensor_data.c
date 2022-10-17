@@ -43,20 +43,14 @@ void dprint_data_one_liner(const int fd, sensor_reading_t *data)
     dprint_float_coordinates(fd, data->coordinates);
 }
 
-void dprint_data_array(const int fd, sensor_reading_t *data_array, const unsigned int size, bool match)
+void dprint_data_array(const int fd, sensor_reading_t *data_array, const unsigned int size)
 {
     static bool used = false;
     const char *header = "hour,date,magnitude,depth,coordinates";
-
     if (!used) {
         dprintf(fd, "%s\n", header);
         used = true;
     }
-
-    if (match)
-        dprintf(fd, "CONCLUSIVE\n");
-    else
-        dprintf(fd, "INCONCLUSIVE\n");
     for (unsigned int i = 0; i < size; ++i) {
         dprint_data_one_liner(fd, &data_array[i]);
     }

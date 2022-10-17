@@ -9,7 +9,6 @@
 #define SENSORNETWORK_SENSOR_H
 
 #include <time.h>
-#include <stdbool.h>
 
 #include "utils.h"
 #include "grid.h"

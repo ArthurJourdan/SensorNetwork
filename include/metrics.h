@@ -36,4 +36,9 @@ typedef struct
     unsigned int nb_sensors;
 } base_station_metrics_t;
 
+bool init_sensor_metrics(sensor_message_metrics_t *sensor_metrics);
+bool init_metrics(base_station_metrics_t *metrics, const unsigned int nb_sensors);
+bool free_metrics(base_station_metrics_t *metrics);
+
+
 #endif // MAKEFILE_METRICS_H

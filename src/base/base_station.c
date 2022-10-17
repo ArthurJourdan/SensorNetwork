@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <signal.h>
 #include <pthread.h>
@@ -11,28 +12,6 @@ pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 static pthread_attr_t attr;
 static pthread_t reading_tid, balloon_tid, fault_detection_tid;
-
-void sig_func(int sig)
-{
-    if (sig == SIGQUIT) {
-#ifdef DEBUG
-        printf("Signal Handler has been called\nEXITING...\n");
-#endif
-        pthread_mutex_lock(&lock);
-        THREADS_EXIT = 1;
-        pthread_mutex_unlock(&lock);
-    }
-}
-
-static void sentinel_detected()
-{
-    pthread_mutex_lock(&lock);
-    THREADS_EXIT = 1;
-    pthread_mutex_unlock(&lock);
-#ifdef DEBUG
-    printf("Sentinel value was detected.\nCommencing shutdown procedure...\n");
-#endif
-}
 
 static void init_pthread(void *params)
 {
@@ -68,6 +47,26 @@ static void on_quit()
 #endif
 }
 
+void sig_func()
+{
+#ifdef DEBUG
+    printf("Signal Handler has been called\nEXITING...\n");
+#endif
+    pthread_mutex_lock(&lock);
+    THREADS_EXIT = 1;
+    pthread_mutex_unlock(&lock);
+}
+
+static void sentinel_detected()
+{
+    pthread_mutex_lock(&lock);
+    THREADS_EXIT = 1;
+    pthread_mutex_unlock(&lock);
+#ifdef DEBUG
+    printf("Sentinel value was detected.\nCommencing shutdown procedure...\n");
+#endif
+}
+
 /**
  * @brief Entry point for base_station process
  * @param process
@@ -85,12 +84,11 @@ void base_station(mpi_info_t process)
     pthread_mutex_lock(&lock);
     while (!THREADS_EXIT) {
         pthread_mutex_unlock(&lock);
+        // TODO: REPLACE WITH SELECT() because this is blocking the program from exiting
         scanf("%s", userInput); // Check new user input
         if (strlen(userInput) == 1 && userInput[0] == sentinel)
             sentinel_detected();
         pthread_mutex_lock(&lock);
     }
     pthread_mutex_unlock(&lock);
-
-    on_quit();
 }
