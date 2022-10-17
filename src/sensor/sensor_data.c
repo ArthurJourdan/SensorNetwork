@@ -31,13 +31,18 @@ void print_data(sensor_reading_t *data)
 void dprint_data_one_liner(const int fd, sensor_reading_t *data)
 {
     dprintf(fd,
-        "%i:%i:%i,%i/%i/%i,%f,%f,",
-        data->timestamp->tm_mday,
-        data->timestamp->tm_mon,
-        data->timestamp->tm_year,
-        data->timestamp->tm_sec,
-        data->timestamp->tm_min,
+        "%0*d:%0*d:%0*d,%0*d/%0*d/%d,%f,%f,",
+        2,
         data->timestamp->tm_hour,
+        2,
+        data->timestamp->tm_min,
+        2,
+        data->timestamp->tm_sec,
+        2,
+        data->timestamp->tm_mday,
+        2,
+        data->timestamp->tm_mon,
+        data->timestamp->tm_year % 100,
         data->magnitude,
         data->depth);
     dprint_float_coordinates(fd, data->coordinates);
@@ -45,12 +50,9 @@ void dprint_data_one_liner(const int fd, sensor_reading_t *data)
 
 void dprint_data_array(const int fd, sensor_reading_t *data_array, const unsigned int size)
 {
-    static bool used = false;
-    const char *header = "hour,date,magnitude,depth,coordinates";
-    if (!used) {
-        dprintf(fd, "%s\n", header);
-        used = true;
-    }
+    const char *header = "sensor type,hour,date,magnitude,depth,coordinates";
+
+    dprintf(fd, "%s\n", header);
     for (unsigned int i = 0; i < size; ++i) {
         dprint_data_one_liner(fd, &data_array[i]);
     }

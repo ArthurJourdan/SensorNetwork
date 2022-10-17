@@ -31,6 +31,7 @@ bool init_metrics(base_station_metrics_t *metrics, const unsigned int nb_sensors
     metrics->total_nb_messages = 0;
     metrics->nb_sensors = nb_sensors;
     if (nb_sensors) {
+        printf("nb_sensors : %i.\n", nb_sensors);
         metrics->sensors_metrics = malloc(sizeof(sensor_message_metrics_t) * nb_sensors);
         if (!metrics->sensors_metrics)
             return false;
@@ -44,15 +45,19 @@ bool init_metrics(base_station_metrics_t *metrics, const unsigned int nb_sensors
 
 static inline void dprint_sensor_metrics(const int fd, sensor_message_metrics_t *sensor_metrics)
 {
-    dprintf(fd, "%i, %u, %u\n", sensor_metrics->rank, sensor_metrics->nb_messages, sensor_metrics->nb_alerts);
+    if (sensor_metrics)
+        dprintf(fd, "%i, %u, %u\n", sensor_metrics->rank, sensor_metrics->nb_messages, sensor_metrics->nb_alerts);
 }
 
 static inline void dprint_sensors_metrics(
     const int fd, sensor_message_metrics_t *sensor_metrics, const unsigned int nb_sensors)
 {
-    dprintf(fd, "Information per sensor :\n");
+    if (!sensor_metrics)
+        return;
+    dprintf(fd, "Information per sensor (%i):\n", nb_sensors);
     dprintf(fd, "rank, number of messages, number of alerts\n");
     for (unsigned int i = 0; i < nb_sensors; ++i) {
+        printf("index : %i.\n", i);
         dprint_sensor_metrics(fd, &sensor_metrics[i]);
     }
 }

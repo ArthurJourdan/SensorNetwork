@@ -8,10 +8,9 @@
 
 #define BALLOON_CYCLE 500000 // balloon sensor cycle time in microseconds
 
-sensor_reading_t balloon_buffer[BALLOON_BUFFER_SIZE];
-unsigned int balloon_index = 0; // index used for ballon_buffer
+sensor_reading_t balloon_buffer;
 
-void balloon_thread(void *ptr)
+void balloon_thread(__attribute__((unused)) void *ptr)
 {
     pthread_mutex_lock(&lock);
     while (!THREADS_EXIT) {
@@ -26,8 +25,8 @@ void balloon_thread(void *ptr)
 
         // sensor_data.timestamp =
 
-        balloon_buffer[balloon_index] = sensor_data;
-
+        pthread_mutex_lock(&lock);
+        copy_sensor_data(&sensor_data, &balloon_buffer);
         pthread_mutex_unlock(&lock);
 
         usleep(BALLOON_CYCLE);

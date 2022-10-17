@@ -6,6 +6,7 @@
  */
 
 #include "utils.h"
+#include "sensor_network.h"
 
 /**
  * @brief tell if error must be generated

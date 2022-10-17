@@ -13,6 +13,14 @@
 #define NB_DIMENSIONS 2
 #define NB_NEIGHBOURS (NB_DIMENSIONS * 2)
 
+enum tags
+{
+    TAG_SENSOR_TO_SENSOR = 1,
+    TAG_SENSOR_TO_BASE,
+    TAG_SENSOR_TO_BASE_ALIVE,
+    TAG_BASE_TO_SENSOR_EXIT,
+};
+
 // probability of an error occurring (1 / ERROR_PROBABILITY)
 #define ERROR_PROBABILITY 500
 

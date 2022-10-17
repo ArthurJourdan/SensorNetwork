@@ -16,8 +16,7 @@ void reading_thread(void *ptr);
 void fault_detection_thread(void *param);
 
 extern int THREADS_EXIT;
-extern sensor_reading_t balloon_buffer[BALLOON_BUFFER_SIZE];
-extern unsigned int balloon_index;
+extern sensor_reading_t balloon_buffer;
 
 extern pthread_mutex_t lock;
 
