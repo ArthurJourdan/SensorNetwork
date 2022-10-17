@@ -1,3 +1,7 @@
+alert_conclusive.txt
+alert_inconclusive.txt
+metrics.txt
+
 # Prerequisites
 *.d
 

@@ -19,7 +19,7 @@
 #define MAGNITUDE_THRESHOLD 5
 #define DEPTH_THRESHOLD     500
 
-static int fd_conclusive, fd_inconclusive, fd_metrics;
+static int fd_conclusive, fd_inconclusive;
 static MPI_Status status;
 static char recv_bufs[2][DATA_PACK_SIZE];
 sensor_reading_t recv_data[2];
@@ -30,13 +30,16 @@ static void on_init(mpi_info_t *process)
     memset(recv_bufs, 0, sizeof(char) * DATA_PACK_SIZE * 2);
     fd_conclusive = open("alert_conclusive.txt", O_CREAT | O_WRONLY, 0666);
     fd_inconclusive = open("alert_inconclusive.txt", O_CREAT | O_WRONLY, 0666);
-    fd_metrics = open("metrics.txt", O_CREAT | O_WRONLY, 0666);
-    init_metrics(&metrics, process->nb_processes);
+    init_metrics(&metrics, process->nb_processes - 1);
 }
 
 static void on_quit(mpi_info_t *process)
 {
-    dprint_metrics(fd_metrics, &metrics);
+    const int fd_metrics = open("metrics.txt", O_CREAT | O_WRONLY, 0666);
+    if (fd_metrics != -1) {
+        dprint_metrics(fd_metrics, &metrics);
+        close(fd_metrics);
+    }
 
     // Send quit messages to the sensor network
     for (int dest = 1; dest < process->nb_processes; dest++) {

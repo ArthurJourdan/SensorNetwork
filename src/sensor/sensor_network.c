@@ -47,6 +47,7 @@ bool finish_all_neighbour_recv(grid_t *grid)
             return false;
         MPI_Cancel(&grid->pending_recv[i]);
     }
+    return true;
 }
 
 /**
