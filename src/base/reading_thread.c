@@ -95,7 +95,7 @@ static void on_msg_avail()
     data_array[1] = recv_data[1];
     data_array[2] = balloon_data;
 
-    dprint_data_array(fd, data_array, 3, match);
+    dprint_data_array(fd, data_array, 3);
 
     // fprintf(file,
     //     "%s %f %f %f %f %s\n",
@@ -123,6 +123,10 @@ void reading_thread(void *ptr)
         pthread_mutex_unlock(&lock);
         MPI_Iprobe(MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &msgAvail, &status);
 
+#ifdef DEBUG
+        printf("Balloon data: \n");
+        print_data(&balloon_buffer[balloon_index]);
+#endif
         if (msgAvail)
             on_msg_avail();
 

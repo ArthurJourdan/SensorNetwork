@@ -11,6 +11,8 @@
 
 #include <time.h>
 #include <signal.h>
+#include <stdio.h>
+#include <unistd.h>
 #include <string.h>
 
 static bool is_end(void)
@@ -41,6 +43,7 @@ void sig_handler()
 bool launch_sensor(grid_t *grid)
 {
     time_t act_time = time(NULL);
+    MPI_Request request;
 
     signal(SIGQUIT, sig_handler);
     init_all_neighbour_recv(grid);
@@ -50,9 +53,11 @@ bool launch_sensor(grid_t *grid)
         read_send_data_neighbours(grid);
         check_neighbour_data(grid);
         if (random_error()) {
+            dprintf(STDERR_FILENO, "Exiting - Error occurred in sensor at coordinates ");
+            print_coordinates(grid->process_position);
             break;
         } else {
-            MPI_Send(STR_ALIVE, strlen(STR_ALIVE), MPI_CHAR, 0, 0, MPI_COMM_WORLD);
+            MPI_Isend(STR_ALIVE, strlen(STR_ALIVE), MPI_CHAR, 0, 0, MPI_COMM_WORLD, &request);
         }
     }
     finish_all_neighbour_recv(grid);

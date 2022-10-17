@@ -59,6 +59,7 @@ static void on_quit()
     // Wait for threads to exit
     pthread_join(balloon_tid, NULL);
     pthread_join(reading_tid, NULL);
+    pthread_join(fault_detection_tid, NULL);
 
     pthread_mutex_destroy(&lock);
 

@@ -11,8 +11,6 @@
 
 bool init_sensor_metrics(sensor_message_metrics_t *sensor_metrics)
 {
-    //    sensor_metrics->sensor;
-    //    sensor_metrics->coordinates;
     sensor_metrics->nb_messages = 0;
     sensor_metrics->nb_alerts = 0;
 }

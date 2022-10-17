@@ -9,6 +9,7 @@
 
 #include <mpi.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 
 bool check_every_sensor(const int nb_sensors, int *dead_sensors_count)
@@ -39,10 +40,8 @@ bool check_every_sensor(const int nb_sensors, int *dead_sensors_count)
         MPI_Cancel(&requests[i]);
         if (!is_alive) {
             dead_sensors_count[i]++;
-            printf("%i is not alive.\n", i);
         } else {
             dead_sensors_count[i] = 0;
-            printf("%i is alive.\n", i);
         }
     }
     free(requests);
@@ -55,19 +54,20 @@ void fault_detection_thread(void *param)
     mpi_info_t *process = (mpi_info_t *) param;
     int *dead_sensors_count = malloc(sizeof(int) * process->nb_processes);
     memset(dead_sensors_count, 0, sizeof(int) * process->nb_processes);
-    pthread_mutex_lock(&MUTEX_EXIT);
+    pthread_mutex_lock(&lock);
 
     while (!THREADS_EXIT) {
-        pthread_mutex_unlock(&MUTEX_EXIT);
+        pthread_mutex_unlock(&lock);
         check_every_sensor(process->nb_processes, dead_sensors_count);
+        sleep(1);
         for (int i = 0; i < process->nb_processes; ++i) {
-            if (dead_sensors_count[i] > 2) {
-                pthread_mutex_lock(&MUTEX_EXIT);
+            if (dead_sensors_count[i] > 5) {
+                pthread_mutex_lock(&lock);
                 THREADS_EXIT = true;
-                pthread_mutex_unlock(&MUTEX_EXIT);
+                pthread_mutex_unlock(&lock);
             }
         }
-        pthread_mutex_lock(&MUTEX_EXIT);
+        pthread_mutex_lock(&lock);
     }
-    pthread_mutex_unlock(&MUTEX_EXIT);
+    pthread_mutex_unlock(&lock);
 }

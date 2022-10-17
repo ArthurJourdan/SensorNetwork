@@ -20,7 +20,7 @@ bool launch_sensor(grid_t *grid);
 // Print
 void print_data(sensor_reading_t *data);
 void dprint_data_one_liner(const int fd, sensor_reading_t *data);
-void dprint_data_array(const int fd, sensor_reading_t *data_array, const unsigned int size, bool match);
+void dprint_data_array(const int fd, sensor_reading_t *data_array, const unsigned int size);
 
 // Get
 bool generate_geo_coordinates(
