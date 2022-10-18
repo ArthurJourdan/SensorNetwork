@@ -18,7 +18,7 @@ static void init_pthread(void *params)
     pthread_attr_init(&attr);
     pthread_create(&balloon_tid, &attr, (void *) balloon_thread, params);
     pthread_create(&reading_tid, &attr, (void *) reading_thread, params);
-    pthread_create(&fault_detection_tid, &attr, (void *) fault_detection_thread, params); // todo
+    pthread_create(&fault_detection_tid, &attr, (void *) fault_detection_thread, params);
 }
 
 static char ask_sentinel_val()
@@ -84,7 +84,6 @@ void base_station(mpi_info_t process)
     pthread_mutex_lock(&lock);
     while (!THREADS_EXIT) {
         pthread_mutex_unlock(&lock);
-        // TODO: REPLACE WITH SELECT() because this is blocking the program from exiting
         scanf("%s", userInput); // Check new user input
         if (strlen(userInput) == 1 && userInput[0] == sentinel)
             sentinel_detected();

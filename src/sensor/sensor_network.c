@@ -79,7 +79,7 @@ bool read_send_data_neighbours(grid_t *grid)
     char packed_data[DATA_PACK_SIZE] = {0};
 
     read_data(grid->size, grid->process_position, &data);
-    if (data.magnitude <= 2.5f) // todo put in another function ?
+    if (data.magnitude <= 2.5f)
         return true;
     save_data_in_history(&grid->data_history, &grid->data_history_size, &data);
     if (!pack_data(grid->comm, &data, packed_data))
