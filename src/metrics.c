@@ -57,7 +57,6 @@ static inline void dprint_sensors_metrics(
     dprintf(fd, "Information per sensor (%i):\n", nb_sensors);
     dprintf(fd, "rank, number of messages, number of alerts\n");
     for (unsigned int i = 0; i < nb_sensors; ++i) {
-        printf("index : %i.\n", i);
         dprint_sensor_metrics(fd, &sensor_metrics[i]);
     }
 }
