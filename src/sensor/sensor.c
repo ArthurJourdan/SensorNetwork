@@ -21,7 +21,7 @@ static bool is_end(void)
     MPI_Status status = {0};
     char buffer[10] = {0};
 
-    if (MPI_Iprobe(0, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &status) != MPI_SUCCESS)
+    if (MPI_Iprobe(0, TAG_BASE_TO_SENSOR_EXIT, MPI_COMM_WORLD, &flag, &status) != MPI_SUCCESS)
         return false;
     if (!flag)
         return false;
@@ -29,7 +29,7 @@ static bool is_end(void)
         print_MPI_error(&status);
         return false;
     }
-    MPI_Recv(buffer, strlen(STR_EXIT), MPI_CHAR, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+    MPI_Recv(buffer, strlen(STR_EXIT), MPI_CHAR, 0, TAG_BASE_TO_SENSOR_EXIT, MPI_COMM_WORLD, &status);
     if (!strcmp(STR_EXIT, buffer))
         return true;
     return false;
@@ -57,7 +57,7 @@ bool launch_sensor(grid_t *grid)
             print_coordinates(grid->process_position);
             break;
         } else {
-            MPI_Isend(STR_ALIVE, strlen(STR_ALIVE), MPI_CHAR, 0, 0, MPI_COMM_WORLD, &request);
+            MPI_Isend(STR_ALIVE, strlen(STR_ALIVE), MPI_CHAR, 0, TAG_SENSOR_TO_BASE_ALIVE, MPI_COMM_WORLD, &request);
         }
     }
     finish_all_neighbour_recv(grid);

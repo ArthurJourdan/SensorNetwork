@@ -24,7 +24,7 @@ bool check_every_sensor(const int nb_sensors, int *dead_sensors_count)
 
     for (int i = 1; i < nb_sensors; ++i) {
         buff[i] = malloc(sizeof(char) * strlen(STR_ALIVE));
-        MPI_Irecv(buff, strlen(STR_ALIVE), MPI_CHAR, i, 0, MPI_COMM_WORLD, &requests[i]);
+        MPI_Irecv(buff, strlen(STR_ALIVE), MPI_CHAR, i, TAG_SENSOR_TO_BASE_ALIVE, MPI_COMM_WORLD, &requests[i]);
     }
 
     for (int i = 1; i < nb_sensors; ++i) {

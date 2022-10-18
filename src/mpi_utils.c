@@ -74,15 +74,6 @@ void print_MPI_error(MPI_Status *status)
     write(2, buff, buff_size);
 }
 
-/*
-bool async_send_recv(char send_buff[DATA_PACK_SIZE], char recv_buff[DATA_PACK_SIZE], const int count, const int rank,
-    MPI_Comm comm, MPI_Request *send_req, MPI_Request *recv_req)
-{
-    MPI_Isend(send_buff, count, MPI_PACKED, rank, 0, comm, send_req);
-    MPI_Irecv(recv_buff, count, MPI_PACKED, rank, 0, comm, recv_req);
-}
-*/
-
 /**
  * @brief
  * @param comm
@@ -101,7 +92,7 @@ bool send_neighbours(MPI_Comm comm, const int neighbours[NB_NEIGHBOURS], char bu
     for (int i = 0; i < NB_NEIGHBOURS; i++) {
         if (neighbours[i] == MPI_PROC_NULL)
             continue;
-        MPI_Isend(buf, count, MPI_PACKED, neighbours[i], 0, comm, &send_request[i]);
+        MPI_Isend(buf, count, MPI_PACKED, neighbours[i], TAG_SENSOR_TO_SENSOR, comm, &send_request[i]);
     }
 
     for (unsigned short i = 0; i < NB_NEIGHBOURS; i++) {

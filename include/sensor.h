@@ -30,7 +30,7 @@ bool unpack_data(MPI_Comm comm, char packed_data[DATA_PACK_SIZE], sensor_reading
 
 float distance(float lat1, float lon1, float lat2, float lon2, char unit);
 bool check_neighbour_data(grid_t *grid);
-bool sensor_data_cmp(sensor_reading_t *first, sensor_reading_t *second);
+bool sensor_data_cmp(const sensor_reading_t *first, const sensor_reading_t *second);
 bool neighbour_data_cmp(grid_t *grid, const int neighbour_req_index);
 
 // Set

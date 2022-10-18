@@ -21,7 +21,7 @@ bool init_neighbour_recv(grid_t *grid, const unsigned int neighbour_req_index)
             DATA_PACK_SIZE,
             MPI_PACKED,
             grid->neighbours[neighbour_req_index / 2],
-            0,
+            TAG_SENSOR_TO_SENSOR,
             grid->comm,
             &grid->pending_recv[neighbour_req_index])
         != MPI_SUCCESS)
@@ -47,6 +47,7 @@ bool finish_all_neighbour_recv(grid_t *grid)
             return false;
         MPI_Cancel(&grid->pending_recv[i]);
     }
+    return true;
 }
 
 /**
@@ -63,7 +64,7 @@ bool check_neighbour_data(grid_t *grid)
         if (grid->neighbours[(i / 2)] == MPI_PROC_NULL)
             continue;
         flag = 0;
-        MPI_Iprobe(grid->neighbours[(i / 2)], 0, grid->comm, &flag, &status);
+        MPI_Iprobe(grid->neighbours[(i / 2)], TAG_SENSOR_TO_SENSOR, grid->comm, &flag, &status);
         if (!flag)
             continue;
         neighbour_data_cmp(grid, (int) i);
