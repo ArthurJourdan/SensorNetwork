@@ -29,7 +29,7 @@ static int find_data_from_time(sensor_reading_t *needle, sensor_reading_t *hayst
 
 bool sensor_data_cmp(const sensor_reading_t *first, const sensor_reading_t *second)
 {
-    const float max_coherant_distance = 500; // in Kilometers
+    const float max_coherant_distance = 700; // in Kilometers
     float dist_2_points;                     // in Kilometers
 
     if (first->magnitude <= 2.5 || second->magnitude <= 2.5)

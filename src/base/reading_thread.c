@@ -88,8 +88,8 @@ static void on_msg_avail()
     match[1] = sensor_data_cmp(&recv_data[1], &balloon_data);
 
     // Log Metrics
-    metrics.sensors_metrics[sources[0] - 1].nb_messages++;
-    metrics.sensors_metrics[sources[1] - 1].nb_messages++;
+    metrics.sensors_metrics[sources[0]].nb_messages += 1;
+    metrics.sensors_metrics[sources[1]].nb_messages += 1;
 
     metrics.total_nb_messages += 2;
 
@@ -125,14 +125,14 @@ static void on_msg_avail()
 
     if (match[0] || match[1]) {
         if (match[0]) {
-            metrics.sensors_metrics[sources[0] - 1].nb_alerts++;
-            metrics.total_nb_alerts++;
+            metrics.sensors_metrics[sources[0]].nb_alerts += 1;
+            metrics.total_nb_alerts += 1;
             dprintf(fd_conclusive, "sender,\t\t");
             dprint_data_one_liner(fd_conclusive, &recv_data[0]);
         }
         if (match[1]) {
-            metrics.sensors_metrics[sources[1] - 1].nb_alerts++;
-            metrics.total_nb_alerts++;
+            metrics.sensors_metrics[sources[1]].nb_alerts += 1;
+            metrics.total_nb_alerts += 1;
             dprintf(fd_conclusive, "neighbour,\t");
             dprint_data_one_liner(fd_conclusive, &recv_data[1]);
         }
