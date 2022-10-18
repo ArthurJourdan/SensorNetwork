@@ -22,6 +22,7 @@ In another terminal run:
 ```
 killall -s SIGQUIT sensor_network
 ``` 
+Then enter a user input into the running program
 
 #### Using sentinel value
 Enter user specified sentinel value during run-time
