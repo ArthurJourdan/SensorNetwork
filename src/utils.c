@@ -24,7 +24,6 @@ int rand_int(const int min, const int max)
 
 bool convert_time(const time_t *in, struct tm **out)
 {
-    // todo free(out) ?
     *out = gmtime(in);
     if (!(*out))
         return false;
